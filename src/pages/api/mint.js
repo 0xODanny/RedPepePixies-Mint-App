@@ -6,7 +6,13 @@ export default async function handler(req, res) {
 
   const { address, quantity } = req.body;
 
-  const provider = new ethers.providers.JsonRpcProvider(process.env.AVAX_RPC);
+  // ✅ Fixed: define network to avoid ENS-related errors
+  const provider = new ethers.providers.JsonRpcProvider({
+    url: process.env.AVAX_RPC,
+    chainId: 43114,
+    name: "avalanche"
+  });
+
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
   const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, raffleAbi, wallet);
 
