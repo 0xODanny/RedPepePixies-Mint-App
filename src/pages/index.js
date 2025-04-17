@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAddress, useConnectionStatus, ConnectWallet } from "@thirdweb-dev/react";
+import { ethers } from "ethers";
+import ballnAbi from "../../abi/balln.json";
 
 export default function Home() {
   const address = useAddress();
@@ -22,20 +24,52 @@ export default function Home() {
     if (!address) return alert("Connect your wallet first.");
     setLoading(true);
 
-    const res = await fetch("/api/mint", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address, quantity, paymentMethod }),
-    });
+    try {
+      const { ethereum } = window;
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
 
-    const data = await res.json();
-    setLoading(false);
+      const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
 
-    if (data.success) {
-      window.location.href = `/success?tokenIds=${data.tokenIds.join(",")}`;
-    } else {
-      alert("Mint failed: " + data.error);
+      if (paymentMethod === "avax") {
+        const tx = await signer.sendTransaction({
+          to: deployer,
+          value: ethers.utils.parseEther((0.085 * quantity).toFixed(4))
+        });
+        await tx.wait();
+      }
+
+      if (paymentMethod === "balln") {
+        const token = new ethers.Contract(
+          process.env.NEXT_PUBLIC_BALLN_TOKEN_ADDRESS,
+          ballnAbi,
+          signer
+        );
+
+        const amount = ethers.utils.parseUnits((6 * quantity).toString(), 18);
+        const tx = await token.transfer(deployer, amount);
+        await tx.wait();
+      }
+
+      const res = await fetch("/api/mint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, quantity, paymentMethod }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = `/success?tokenIds=${data.tokenIds.join(",")}`;
+      } else {
+        alert("Mint failed: " + data.error);
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Transaction failed: " + err.message);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -50,7 +84,7 @@ export default function Home() {
       <div style={{
         backgroundColor: "#111",
         padding: "2rem",
-        border: "4px solid #00bfff", // Light blue border
+        border: "4px solid #00bfff",
         borderRadius: "15px",
         maxWidth: "600px",
         width: "100%",
@@ -130,7 +164,7 @@ export default function Home() {
           marginTop: "1.5rem",
           padding: "1rem",
           backgroundColor: "#ffe6f0",
-          border: "2px solid #ff69b4", // 🎀 Hot pink border
+          border: "2px solid #ff69b4",
           borderRadius: "10px",
           color: "#000",
           fontWeight: "bold",
