@@ -1,59 +1,43 @@
+![Balln Ballrz Preview](https://raw.githubusercontent.com/0xODanny/BallnBallrz/main/public/ballrz-preview.png)
 
-![tw-banner](https://github.com/thirdweb-example/next-starter/assets/57885104/20c8ce3b-4e55-4f10-ae03-2fe4743a5ee8)
+# 🏀 Balln Ballrz Mint App
 
-# thirdweb-next-starter
+A web-based NFT minting app for the official **Balln Ballrz: Slam Dunk** collection, built with [Next.js](https://nextjs.org/), [thirdweb](https://thirdweb.com/), and [ethers.js](https://ethers.org/).
 
-Starter template to build an onchain react native app with [thirdweb](https://thirdweb.com/) and [next](https://nextjs.org/).
+Mint directly with **1.33 AVAX** — no token approval required.
 
-## Installation
+---
 
-Install the template using [thirdweb create](https://portal.thirdweb.com/cli/create)
+## 🔧 Getting Started
 
-```bash
-  npx thirdweb create app --next
-```
-
-## Environment Variables
-
-To run this project, you will need to add the following environment variables to your .env file:
-
-`CLIENT_ID`
-
-To learn how to create a client ID, refer to the [client documentation](https://portal.thirdweb.com/typescript/v5/client). 
-
-## Run locally
-
-Install dependencies
+1. **Clone the repo**
 
 ```bash
-yarn
-```
+git clone https://github.com/0xODanny/BallnBallrz.git
+cd BallnBallrz
 
-Start development server
 
-```bash
+2. Install dependencies
+yarn install
+
+3. Start development
 yarn dev
-```
 
-Create a production build
+📦 Environment Variables
+Create a .env.local file:
+NEXT_PUBLIC_DEPLOYER_WALLET=0xYourWalletAddress
 
-```bash
+Make sure your deployer wallet holds enough AVAX to mint.
+
+🛠 Build for Production
 yarn build
-```
-
-Preview the production build
-
-```bash
 yarn start
-```
 
-## Resources
+🔗 Community
+ • Telegram
+ • Twitter
+ • Arena
 
-- [Documentation](https://portal.thirdweb.com/typescript/v5)
-- [Templates](https://thirdweb.com/templates)
-- [YouTube](https://www.youtube.com/c/thirdweb)
-- [Blog](https://blog.thirdweb.com)
+🙌 Built by @0xODanny @ Red Pepe Labs 
 
-## Need help?
-
-For help or feedback, please [visit our support site](https://thirdweb.com/support)
+Proudly part of the Balln Token ecosystem on Avalanche.

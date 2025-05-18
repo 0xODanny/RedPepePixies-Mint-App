@@ -20,6 +20,70 @@
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "numerator",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "denominator",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC2981InvalidDefaultRoyalty",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC2981InvalidDefaultRoyaltyReceiver",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "numerator",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "denominator",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC2981InvalidTokenRoyalty",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC2981InvalidTokenRoyaltyReceiver",
+    "type": "error"
+  },
+  {
     "inputs": [],
     "name": "MintERC2309QuantityExceedsLimit",
     "type": "error"
@@ -37,6 +101,28 @@
   {
     "inputs": [],
     "name": "NotCompatibleWithSpotMints",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
     "type": "error"
   },
   {
@@ -181,6 +267,25 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "minter",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "quantity",
+        "type": "uint256"
+      }
+    ],
+    "name": "Minted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "previousOwner",
         "type": "address"
       },
@@ -192,31 +297,6 @@
       }
     ],
     "name": "OwnershipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "firstTokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "quantity",
-        "type": "uint256"
-      }
-    ],
-    "name": "TicketMinted",
     "type": "event"
   },
   {
@@ -245,6 +325,19 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "MAX_SUPPLY",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -253,7 +346,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "amount",
+        "name": "quantity",
         "type": "uint256"
       }
     ],
@@ -372,23 +465,23 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "amount",
+        "name": "quantity",
         "type": "uint256"
       }
     ],
-    "name": "mintTicket",
+    "name": "mint",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "mintingActive",
+    "name": "mintPrice",
     "outputs": [
       {
-        "internalType": "bool",
+        "internalType": "uint256",
         "name": "",
-        "type": "bool"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -441,9 +534,51 @@
   },
   {
     "inputs": [],
+    "name": "publicMintEnabled",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "salePrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "royaltyInfo",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -519,7 +654,7 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "_newFilename",
+        "name": "newBase",
         "type": "string"
       }
     ],
@@ -532,11 +667,42 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "_newCID",
+        "name": "newCID",
         "type": "string"
       }
     ],
     "name": "setMetadataCID",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "setMintPrice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      },
+      {
+        "internalType": "uint96",
+        "name": "feeNumerator",
+        "type": "uint96"
+      }
+    ],
+    "name": "setRoyalty",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -574,8 +740,14 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "toggleMinting",
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "enabled",
+        "type": "bool"
+      }
+    ],
+    "name": "togglePublicMint",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -644,6 +816,13 @@
       }
     ],
     "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdraw",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { useAddress, useConnectionStatus, ConnectWallet } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
-import ballnAbi from "../../abi/balln.json";
 
 export default function Home() {
   const address = useAddress();
   const connectionStatus = useConnectionStatus();
   const [quantity, setQuantity] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState("avax");
   const [loading, setLoading] = useState(false);
   const [sparkles, setSparkles] = useState([]);
 
@@ -31,30 +29,16 @@ export default function Home() {
 
       const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
 
-      if (paymentMethod === "avax") {
-        const tx = await signer.sendTransaction({
-          to: deployer,
-          value: ethers.utils.parseEther((0.085 * quantity).toFixed(4))
-        });
-        await tx.wait();
-      }
-
-      if (paymentMethod === "balln") {
-        const token = new ethers.Contract(
-          process.env.NEXT_PUBLIC_BALLN_TOKEN_ADDRESS,
-          ballnAbi,
-          signer
-        );
-
-        const amount = ethers.utils.parseUnits((6 * quantity).toString(), 18);
-        const tx = await token.transfer(deployer, amount);
-        await tx.wait();
-      }
+      const tx = await signer.sendTransaction({
+        to: deployer,
+        value: ethers.utils.parseEther((1.33 * quantity).toFixed(4)),
+      });
+      await tx.wait();
 
       const res = await fetch("/api/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address, quantity, paymentMethod }),
+        body: JSON.stringify({ address, quantity, paymentMethod: "avax" }),
       });
 
       const data = await res.json();
@@ -74,12 +58,11 @@ export default function Home() {
 
   return (
     <main style={{
-      backgroundColor: "#000",
+      backgroundImage: "url('/ballrz-bg-2.png')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
       minHeight: "100vh",
-      padding: "2rem",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
     }}>
       <div style={{
         backgroundColor: "#111",
@@ -94,7 +77,8 @@ export default function Home() {
       }}>
         <ConnectWallet />
 
-        <h1 style={{ fontSize: "1.75rem", margin: "1rem 0" }}>🎟️ Mint a Balln Raffle Ticket</h1>
+        <h1 style={{ fontSize: "1.75rem", margin: "1rem 0" }}>🏀 Mint a Balln Ballrz NFT</h1>
+
         <div style={{ display: "flex", justifyContent: "center", margin: "1.5rem 0", position: "relative" }}>
           <div style={{
             width: "300px",
@@ -103,8 +87,8 @@ export default function Home() {
             position: "relative"
           }}>
             <img
-              src="/sample-ticket.png"
-              alt="Raffle Ticket"
+              src="/ballrz-preview.png"
+              alt="Ballrz NFT"
               style={{
                 width: "100%",
                 display: "block",
@@ -126,7 +110,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <p style={{ margin: "1rem 0" }}>Each NFT costs <strong>0.085 AVAX</strong> or <strong>6 $balln</strong></p>
+
+        <p style={{ margin: "1rem 0" }}>Each NFT costs <strong>1.33 AVAX</strong></p>
 
         <div style={{ marginBottom: "1rem" }}>
           <label>Quantity: </label>
@@ -134,12 +119,6 @@ export default function Home() {
             {[1, 3, 5, 10].map((q) => (
               <option key={q} value={q}>{q}</option>
             ))}
-          </select>
-
-          <label style={{ marginLeft: "1rem" }}>Payment:</label>
-          <select onChange={(e) => setPaymentMethod(e.target.value)}>
-            <option value="avax">AVAX (0.085 each)</option>
-            <option value="balln">BALLN (6 per NFT)</option>
           </select>
         </div>
 
@@ -163,13 +142,21 @@ export default function Home() {
         <div style={{
           marginTop: "1.5rem",
           padding: "1rem",
-          backgroundColor: "#ffe6f0",
-          border: "2px solid #ff69b4",
+          backgroundColor: "#e6f7ff",
+          border: "2px solid #00bfff",
           borderRadius: "10px",
           color: "#000",
           fontWeight: "bold",
         }}>
-          🚨 Want to mint for less? <a href="https://t.me/BALLN3" target="_blank" rel="noopener noreferrer" style={{ color: "#ff1493", textDecoration: "underline" }}>Come into our Telegram!</a>
+          🎮 Minting in our official Telegram chat is even more fun!{" "}
+          <a
+            href="https://t.me/BALLN3"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#007acc", textDecoration: "underline" }}
+          >
+            Come and join the game!
+          </a>
         </div>
 
         <p style={{ marginTop: "1rem" }}>

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import raffleAbi from "../../../abi/raffle.json";
+import ballrzAbi from "../../../abi/ballrz.json";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();

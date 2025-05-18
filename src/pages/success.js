@@ -12,12 +12,12 @@ export default function Success() {
       if (!tokenIds) return;
       const ids = tokenIds.split(",");
 
-      const baseCID = "bafybeie4vvzziuwp62zx4qi2u4mjue4z6v66zhbiuwwgrkpgqhdxn2p3oy"; // metadata CID
+      const baseCID = "bafybeibxnu3wnrmj5sp7qaupuyvtbs6bfop4i5oyw2g74r4cacdjbha6em"; // Ballrz metadata CID
 
       const fetched = await Promise.all(
         ids.map(async (id) => {
           try {
-            const metadataUrl = `https://ipfs.io/ipfs/${baseCID}/Balln_Raffle_Ticket_${id}.json`;
+            const metadataUrl = `https://ipfs.io/ipfs/${baseCID}/BallnBallrz${id}.json`;
             const res = await fetch(metadataUrl);
             const metadata = await res.json();
             const imageUrl = metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/");
@@ -55,18 +55,18 @@ export default function Success() {
           {image ? (
             <img
               src={image}
-              alt={`Ticket #${id}`}
+              alt={`Ballrz NFT #${id}`}
               style={{ maxWidth: "300px", borderRadius: "15px" }}
             />
           ) : (
-            <p>⚠️ Failed to load image for Ticket #{id}</p>
+            <p>⚠️ Failed to load image for Ballrz NFT</p>
           )}
-          <p style={{ marginTop: "0.5rem" }}>🎟️ Token ID: {id}</p>
+          <p style={{ marginTop: "0.5rem" }}>🏀 Token ID: {id}</p>
         </div>
       ))}
 
       <div style={{ marginTop: "2rem", color: "#ccc", textAlign: "center" }}>
-        <p>Thank you for minting! Share your ticket and follow us:</p>
+        <p>Thank you for minting! Share your NFT and follow us:</p>
 
         <div
           style={{
