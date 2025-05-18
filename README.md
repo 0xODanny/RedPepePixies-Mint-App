@@ -1,4 +1,4 @@
-![Balln Ballrz Preview](https://raw.githubusercontent.com/0xODanny/BallnBallrz/main/public/ballrz-preview.png)
+![Balln Ballrz Banner](https://github.com/0xODanny/BallnBallrz/blob/main/public/ballrz-bg-2-1200x400.png?raw=true)
 
 # 🏀 Balln Ballrz Mint App
 

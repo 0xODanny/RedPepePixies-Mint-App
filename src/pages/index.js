@@ -46,6 +46,7 @@ export default function Home() {
       } else {
         alert("Mint failed: " + data.error);
       }
+
     } catch (err) {
       console.error(err);
       alert("Transaction failed: " + err.message);
@@ -94,7 +95,7 @@ export default function Home() {
             }}
           >
             <img
-              src="/balln-preview.png"
+              src="/ballnballrz-preview.png"
               alt="Ballrz NFT"
               style={{
                 width: "100%",
@@ -159,9 +160,11 @@ export default function Home() {
             borderRadius: "10px",
             color: "#000",
             fontWeight: "bold",
+            lineHeight: "1.6",
           }}
         >
-          🎮 Minting in our official Telegram chat is even more fun!{" "}
+          Minting in our official Telegram chat is even more fun!<br />
+          🏀{" "}
           <a
             href="https://t.me/BALLN3"
             target="_blank"
@@ -169,7 +172,8 @@ export default function Home() {
             style={{ color: "#007acc", textDecoration: "underline" }}
           >
             Come and join the game!
-          </a>
+          </a>{" "}
+          🏀
         </div>
 
         <p style={{ marginTop: "1rem" }}>
