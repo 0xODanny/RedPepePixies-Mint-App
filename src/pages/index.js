@@ -26,7 +26,6 @@ export default function Home() {
       const { ethereum } = window;
       const provider = new ethers.providers.Web3Provider(ethereum);
       const signer = provider.getSigner();
-
       const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
 
       const tx = await signer.sendTransaction({
@@ -47,7 +46,6 @@ export default function Home() {
       } else {
         alert("Mint failed: " + data.error);
       }
-
     } catch (err) {
       console.error(err);
       alert("Transaction failed: " + err.message);
@@ -57,42 +55,51 @@ export default function Home() {
   };
 
   return (
-    <main style={{
-      backgroundImage: "url('/ballrz-bg-2.png')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-      minHeight: "100vh",
-    }}>
-      <div style={{
-        backgroundColor: "#111",
-        padding: "2rem",
-        border: "4px solid #00bfff",
-        borderRadius: "15px",
-        maxWidth: "600px",
-        width: "100%",
-        color: "#fff",
-        fontFamily: "Arial, sans-serif",
-        textAlign: "center",
-      }}>
+    <main
+      style={{
+        backgroundImage: "url('/ballrz-bg-2.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "#111",
+          padding: "2rem",
+          border: "4px solid #00bfff",
+          borderRadius: "15px",
+          maxWidth: "600px",
+          width: "100%",
+          color: "#fff",
+          fontFamily: "Arial, sans-serif",
+          textAlign: "center",
+        }}
+      >
         <ConnectWallet />
 
         <h1 style={{ fontSize: "1.75rem", margin: "1rem 0" }}>🏀 Mint a Balln Ballrz NFT</h1>
 
         <div style={{ display: "flex", justifyContent: "center", margin: "1.5rem 0", position: "relative" }}>
-          <div style={{
-            width: "300px",
-            borderRadius: "20px",
-            overflow: "hidden",
-            position: "relative"
-          }}>
+          <div
+            style={{
+              width: "300px",
+              borderRadius: "20px",
+              overflow: "hidden",
+              position: "relative",
+            }}
+          >
             <img
-              src="/ballrz-preview.png"
+              src="/balln-preview.png"
               alt="Ballrz NFT"
               style={{
                 width: "100%",
                 display: "block",
-                borderRadius: "20px"
+                borderRadius: "20px",
               }}
             />
             <div className="css-sparkles">
@@ -111,13 +118,17 @@ export default function Home() {
           </div>
         </div>
 
-        <p style={{ margin: "1rem 0" }}>Each NFT costs <strong>1.33 AVAX</strong></p>
+        <p style={{ margin: "1rem 0" }}>
+          Each NFT costs <strong>1.33 AVAX</strong>
+        </p>
 
         <div style={{ marginBottom: "1rem" }}>
           <label>Quantity: </label>
           <select onChange={(e) => setQuantity(Number(e.target.value))}>
             {[1, 3, 5, 10].map((q) => (
-              <option key={q} value={q}>{q}</option>
+              <option key={q} value={q}>
+                {q}
+              </option>
             ))}
           </select>
         </div>
@@ -133,21 +144,23 @@ export default function Home() {
             fontSize: "1.75rem",
             border: "none",
             borderRadius: "12px",
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           {loading ? "Minting..." : "Mint Now"}
         </button>
 
-        <div style={{
-          marginTop: "1.5rem",
-          padding: "1rem",
-          backgroundColor: "#e6f7ff",
-          border: "2px solid #00bfff",
-          borderRadius: "10px",
-          color: "#000",
-          fontWeight: "bold",
-        }}>
+        <div
+          style={{
+            marginTop: "1.5rem",
+            padding: "1rem",
+            backgroundColor: "#e6f7ff",
+            border: "2px solid #00bfff",
+            borderRadius: "10px",
+            color: "#000",
+            fontWeight: "bold",
+          }}
+        >
           🎮 Minting in our official Telegram chat is even more fun!{" "}
           <a
             href="https://t.me/BALLN3"
