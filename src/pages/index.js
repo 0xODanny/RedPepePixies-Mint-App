@@ -40,7 +40,16 @@ export default function Home() {
         body: JSON.stringify({ address, quantity, paymentMethod: "avax" }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (err) {
+        console.error("Failed to parse JSON response:", err);
+        alert("Transaction may have succeeded, but the response could not be read. Please check your wallet or try again.");
+        setLoading(false);
+        return;
+      }
+
       if (data.success) {
         window.location.href = `/success?tokenIds=${data.tokenIds.join(",")}`;
       } else {
