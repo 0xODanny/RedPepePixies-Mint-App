@@ -8,7 +8,7 @@ export default function Document() {
         {/* Favicon link */}
         <link rel="icon" href="/favicon.png" />
         {/* Optional: Default page title */}
-        <title>Balln Ballrz</title>
+        <title>Red Pepe Pixies</title>
       </Head>
       <body>
         <Main />

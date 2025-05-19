@@ -12,12 +12,12 @@ export default function Success() {
       if (!tokenIds) return;
       const ids = tokenIds.split(",");
 
-      const baseCID = "bafybeibxnu3wnrmj5sp7qaupuyvtbs6bfop4i5oyw2g74r4cacdjbha6em"; // Ballrz metadata CID
+      const baseCID = "bafybeifvgj27s573p5qoy3ddbqmcgh5tjzjn2bmtvbdwlor2xwwee4pzk4"; // Pixies metadata CID
 
       const fetched = await Promise.all(
         ids.map(async (id) => {
           try {
-            const metadataUrl = `https://ipfs.io/ipfs/${baseCID}/BallnBallrz${id}.json`;
+            const metadataUrl = `https://ipfs.io/ipfs/${baseCID}/RedPepePixies${id}.json`;
             const res = await fetch(metadataUrl);
             const metadata = await res.json();
             const imageUrl = metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/");
@@ -55,13 +55,13 @@ export default function Success() {
           {image ? (
             <img
               src={image}
-              alt={`Ballrz NFT #${id}`}
+              alt={`Pixies NFT #${id}`}
               style={{ maxWidth: "300px", borderRadius: "15px" }}
             />
           ) : (
-            <p>⚠️ Failed to load image for Ballrz NFT</p>
+            <p>⚠️ Failed to load image for Pixies NFT</p>
           )}
-          <p style={{ marginTop: "0.5rem" }}>🏀 Token ID: {id}</p>
+          <p style={{ marginTop: "0.5rem" }}>Token ID: {id}</p>
         </div>
       ))}
 
@@ -78,7 +78,7 @@ export default function Success() {
           }}
         >
           <a
-            href="https://x.com/BallnToken3"
+            href="https://x.com/redpepeavax"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -97,7 +97,7 @@ export default function Success() {
           </a>
 
           <a
-            href="https://arena.social/BallnToken3"
+            href="https://arena.social/redpepeavax"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -116,7 +116,7 @@ export default function Success() {
           </a>
 
           <a
-            href="https://t.me/BALLN3"
+            href="https://t.me/redpepeavax1"
             target="_blank"
             rel="noopener noreferrer"
             style={{

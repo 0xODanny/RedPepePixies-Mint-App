@@ -67,7 +67,7 @@ export default function Home() {
   return (
     <main
       style={{
-        backgroundImage: "url('/ballrz-bg-2.png')",
+        backgroundImage: "url('/pixies-bg.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -81,7 +81,7 @@ export default function Home() {
         style={{
           backgroundColor: "#111",
           padding: "2rem",
-          border: "4px solid #00bfff",
+          border: "4px solid #cc4444",
           borderRadius: "15px",
           maxWidth: "600px",
           width: "100%",
@@ -92,7 +92,7 @@ export default function Home() {
       >
         <ConnectWallet />
 
-        <h1 style={{ fontSize: "1.75rem", margin: "1rem 0" }}>🏀 Mint a Balln Ballrz NFT</h1>
+        <h1 style={{ fontSize: "1.75rem", margin: "1rem 0" }}>Mint a Red Pepe Pixies NFT!</h1>
 
         <div style={{ display: "flex", justifyContent: "center", margin: "1.5rem 0", position: "relative" }}>
           <div
@@ -104,8 +104,8 @@ export default function Home() {
             }}
           >
             <img
-              src="/ballnballrz-preview.png"
-              alt="Ballrz NFT"
+              src="/pixies-preview.png"
+              alt="Pixies NFT"
               style={{
                 width: "100%",
                 display: "block",
@@ -129,7 +129,7 @@ export default function Home() {
         </div>
 
         <p style={{ margin: "1rem 0" }}>
-          Each NFT costs <strong>1.33 AVAX</strong>
+          Each Pixie costs <strong>1.33 AVAX</strong>
         </p>
 
         <div style={{ marginBottom: "1rem" }}>
@@ -165,24 +165,23 @@ export default function Home() {
             marginTop: "1.5rem",
             padding: "1rem",
             backgroundColor: "#e6f7ff",
-            border: "2px solid #00bfff",
+            border: "2px solid #cc4444",
             borderRadius: "10px",
             color: "#000",
             fontWeight: "bold",
             lineHeight: "1.6",
           }}
         >
-          Minting in our official Telegram chat is even more fun!<br />
-          🏀{" "}
+          Come and chat in our official Telegram chat while you mint!<br />
+          {" "}
           <a
-            href="https://t.me/BALLN3"
+            href="https://t.me/redpepeavax1"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#007acc", textDecoration: "underline" }}
+            style={{ color: "#cc4444", textDecoration: "underline" }}
           >
-            Come and join the game!
-          </a>{" "}
-          🏀
+            Don't miss out!
+          </a>
         </div>
 
         <p style={{ marginTop: "1rem" }}>

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import ballrzAbi from "../../../abi/ballrz.json";
+import pixiesAbi from "../../../abi/pixies.json";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
     const contract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
-      ballrzAbi,
+      pixiesAbi,
       wallet
     );
 
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const receipt = await tx.wait();
 
     // ✅ Extract minted token IDs
-    const iface = new ethers.utils.Interface(ballrzAbi);
+    const iface = new ethers.utils.Interface(pixiesAbi);
     const tokenIds = receipt.logs.reduce((acc, log) => {
       try {
         const parsed = iface.parseLog(log);
