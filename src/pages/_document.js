@@ -6,7 +6,7 @@ export default function Document() {
     <Html>
       <Head>
         {/* Favicon link */}
-        <link rel="icon" href="/favicon.png" />
+        <link rel="icon" href="/pixies-favicon.png" />
         {/* Optional: Default page title */}
         <title>Red Pepe Pixies</title>
       </Head>
