@@ -131,10 +131,27 @@ export default function Success() {
               alt="Telegram"
               style={{ width: "20px", height: "20px", marginRight: "6px" }}
             />
+	    
             Telegram
           </a>
         </div>
       </div>
-    </div>
+
+      <button
+        onClick={() => router.push("/")}
+        style={{
+          marginTop: "2rem",
+          backgroundColor: "#222",
+          color: "#fff",
+          border: "1px solid #444",
+          padding: "0.75rem 1.5rem",
+          borderRadius: "10px",
+          cursor: "pointer",
+          fontSize: "1rem",
+        }}
+      >
+        ⬅️ Back to Mint Page
+      </button>
+     </div>
   );
 }
