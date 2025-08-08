@@ -280,11 +280,13 @@ export default function StakingTracker() {
           transition: width 0.9s ease-in-out;
         }
         .progressText {
-          color: #000;
-          font-family: 'VT323', monospace;
-          font-size: 12px;
-          line-height: 1;
-        }
+		color: #ff3b30;           /* red % text */
+		font-family: 'VT323', monospace;
+		font-size: 12px;
+		line-height: 1;
+		font-weight: 700;
+		letter-spacing: 0.5px;
+	}
         .progressLabel { margin-top: 6px; font-size: 14px; opacity: 0.9; }
 
         .notice {

@@ -1,3 +1,4 @@
+// src/pages/index.js
 import { useState, useEffect } from "react";
 import { useAddress, useConnectionStatus, ConnectWallet } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
@@ -28,12 +29,14 @@ export default function Home() {
       const signer = provider.getSigner();
       const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
 
+      // send AVAX payment
       const tx = await signer.sendTransaction({
         to: deployer,
         value: ethers.utils.parseEther((1.33 * quantity).toFixed(4)),
       });
       await tx.wait();
 
+      // call API to mint
       const res = await fetch("/api/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,7 +58,6 @@ export default function Home() {
       } else {
         alert("Mint failed: " + data.error);
       }
-
     } catch (err) {
       console.error(err);
       alert("Transaction failed: " + err.message);
@@ -76,27 +78,9 @@ export default function Home() {
         justifyContent: "center",
         alignItems: "center",
         position: "relative",
+        padding: "20px",
       }}
     >
-      <a
-        href="/staking"
-        style={{
-          position: "absolute",
-          top: "20px",
-          right: "20px",
-          backgroundColor: "#28a745",
-          color: "#fff",
-          padding: "0.5rem 1rem",
-          borderRadius: "8px",
-          fontFamily: "monospace",
-          fontWeight: "bold",
-          textDecoration: "none",
-          border: "2px solid #1e7e34",
-        }}
-      >
-        💾 Stake Now to Earn More Pixies!
-      </a>
-
       <div
         style={{
           backgroundColor: "#111",
@@ -110,7 +94,27 @@ export default function Home() {
           textAlign: "center",
         }}
       >
-        <ConnectWallet />
+        {/* Top controls: Connect + Stake */}
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center", marginBottom: "12px" }}>
+          <ConnectWallet />
+          <a
+            href="/staking"
+            style={{
+              backgroundColor: "#28a745",
+              color: "#fff",
+              padding: "0.5rem 1rem",
+              borderRadius: "8px",
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              textDecoration: "none",
+              border: "2px solid #1e7e34",
+              whiteSpace: "nowrap",
+              alignSelf: "center",
+            }}
+          >
+            💾 Stake Now to Earn More Pixies!
+          </a>
+        </div>
 
         <h1 style={{ fontSize: "1.75rem", margin: "1rem 0" }}>Mint a Red Pepe Pixies NFT!</h1>
 
@@ -175,6 +179,8 @@ export default function Home() {
             border: "none",
             borderRadius: "12px",
             cursor: "pointer",
+            width: "100%",
+            maxWidth: "420px",
           }}
         >
           {loading ? "Minting..." : "Mint Now"}
@@ -192,8 +198,7 @@ export default function Home() {
             lineHeight: "1.6",
           }}
         >
-          Come and chat in our official Telegram chat while you mint!<br />
-          {" "}
+          Come and chat in our official Telegram chat while you mint!{" "}
           <a
             href="https://t.me/redpepeavax1"
             target="_blank"
