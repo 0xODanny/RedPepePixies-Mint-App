@@ -19,7 +19,12 @@ export default function StakingTracker() {
   const [balance, setBalance] = useState(0);
   const [nfts, setNfts] = useState(0);
 
-  const [status, setStatus] = useState({ eligible: false, claimed: false, claimedTx: null, claimedTokenIds: null });
+  const [status, setStatus] = useState({
+    eligible: false,
+    claimed: false,
+    claimedTx: null,
+    claimedTokenIds: null,
+  });
   const [autoClaimed, setAutoClaimed] = useState(false);
 
   useEffect(() => {
@@ -53,7 +58,6 @@ export default function StakingTracker() {
     fetchData();
   }, [address]);
 
-  // check eligibility/claimed + auto-claim once
   useEffect(() => {
     const run = async () => {
       if (!address) return;
@@ -74,7 +78,12 @@ export default function StakingTracker() {
             if (c.success) {
               setAutoClaimed(true);
               alert(`Free Pixie minted! Token IDs: ${c.tokenIds.join(", ")}`);
-              setStatus({ eligible: true, claimed: true, claimedTx: c.tx, claimedTokenIds: c.tokenIds.join(",") });
+              setStatus({
+                eligible: true,
+                claimed: true,
+                claimedTx: c.tx,
+                claimedTokenIds: c.tokenIds.join(","),
+              });
             } else {
               console.warn("Claim failed:", c.error);
             }
@@ -114,7 +123,6 @@ export default function StakingTracker() {
   return (
     <>
       <Head>
-        {/* Pixel font */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
@@ -134,45 +142,36 @@ export default function StakingTracker() {
             <p className="term">Connect your wallet to start staking tracking...</p>
           ) : (
             <div>
-              {/* Title */}
-              <h1 className="title typewriter">
-                Staking Status for {address}
-              </h1>
+              <h1 className="title typewriter">Staking Status for {address}</h1>
 
               {typingDone && (
                 <div className="space-y-3">
-                  {/* Status row */}
                   <p className="term">
-                    <span className="label">Wallet status:</span>{" "}
-                    <span className="ok">✔ Wallet connected</span>
-                  </p>
-
-                  {/* Data rows */}
-                  <p className="term">
-                    <span className="label">$RPEPE Balance:</span>{" "}
-                    <span className="num">{balance.toLocaleString()}</span>
+                    <span className="label">Wallet status:</span> <span className="ok">✔ Wallet connected</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">Pixie NFTs:</span>{" "}
-                    <span className="num">{nfts}</span>
+                    <span className="label">$RPEPE Balance:</span> <span className="num">{balance.toLocaleString()}</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">Earning:</span>{" "}
-                    <span className="num">{points}</span>
+                    <span className="label">Pixie NFTs:</span> <span className="num">{nfts}</span>
+                  </p>
+
+                  <p className="term">
+                    <span className="label">Earning:</span> <span className="num">{points}</span>
                     <span className="unit"> points/day</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">Time until NFT:</span>{" "}
-                    <span className="num">{daysRemaining}</span>
+                    <span className="label">Time until NFT:</span> <span className="num">{daysRemaining}</span>
                     <span className="unit"> days</span>
                   </p>
 
-                  {/* Status messages */}
                   {status.claimed && (
-                    <p className="term note">Thank you for staking. This wallet has already received a free Pixie via $RPEPE staking.</p>
+                    <p className="term note">
+                      Thank you for staking. This wallet has already received a free Pixie via $RPEPE staking.
+                    </p>
                   )}
                   {!status.claimed && status.eligible && (
                     <p className="term note">Eligible for a free Pixie — minting now…</p>
@@ -180,7 +179,6 @@ export default function StakingTracker() {
                 </div>
               )}
 
-              {/* Progress bar pinned to bottom of card */}
               <div className="progressWrap">
                 <div className="progressTrack">
                   <div className="progressFill" style={{ width: `${earnedPercent}%` }}>
@@ -188,6 +186,9 @@ export default function StakingTracker() {
                   </div>
                 </div>
                 <p className="progressLabel">Progress toward next NFT</p>
+                <p className="notice">
+                  Once registered for staking, removal of $RPEPE or NFTs from this wallet will reset your earnings.
+                </p>
               </div>
             </div>
           )}
@@ -203,48 +204,34 @@ export default function StakingTracker() {
         .btn,
         .progressLabel {
           font-family: 'VT323', monospace;
-          color: #00ff66; /* green text */
+          color: #00ff66;
           letter-spacing: 0.5px;
         }
         .title {
-          font-size: 22px; /* normal-ish size per your request */
+          font-size: 22px;
           margin: 8px 0 16px;
-          white-space: nowrap;
           overflow: hidden;
+          display: inline-block; /* fixes trailing gap */
           border-right: 2px solid #00ff66; /* caret */
         }
-        /* Typewriter effect on the title */
         .typewriter {
           animation: typing 1.5s steps(40, end), blink-caret 1s step-end infinite;
         }
         @keyframes typing {
           from { width: 0; }
-          to   { width: 100%; }
+          to { width: 100%; }
         }
         @keyframes blink-caret {
           from, to { border-color: transparent; }
           50% { border-color: #00ff66; }
         }
 
-        .label {
-          color: #00ff66;
-        }
-        .num {
-          color: #ff3b30; /* red numbers */
-        }
-        .unit {
-          color: #00ff66;
-          opacity: 0.9;
-        }
-        .ok {
-          color: #00ff66;
-        }
-        .note {
-          margin-top: 8px;
-          opacity: 0.95;
-        }
+        .label { color: #00ff66; }
+        .num { color: #ff3b30; }
+        .unit { color: #00ff66; opacity: 0.9; }
+        .ok { color: #00ff66; }
+        .note { margin-top: 8px; opacity: 0.95; }
 
-        /* Button */
         .btn {
           background: #111;
           border: 1px solid #2a2a2a;
@@ -252,18 +239,13 @@ export default function StakingTracker() {
           border-radius: 8px;
           cursor: pointer;
         }
-        .btn:hover {
-          border-color: #00ff66;
-        }
+        .btn:hover { border-color: #00ff66; }
 
-        /* Progress at the BOTTOM, compact width */
-        .progressWrap {
-          margin-top: 28px;
-        }
+        .progressWrap { margin-top: 28px; }
         .progressTrack {
-          width: 420px;        /* compact so it fits on laptops */
+          width: 420px;
           max-width: 100%;
-          height: 14px;        /* shorter bar */
+          height: 14px;
           background: #0a0a0a;
           border: 1px solid #1f1f1f;
           border-radius: 7px;
@@ -274,7 +256,7 @@ export default function StakingTracker() {
           background: #00ff66;
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: center; /* center % text */
           position: relative;
           transition: width 0.9s ease-in-out;
         }
@@ -284,16 +266,18 @@ export default function StakingTracker() {
           font-size: 12px;
           line-height: 1;
         }
-        .progressLabel {
-          margin-top: 6px;
-          font-size: 14px;
-          opacity: 0.9;
+        .progressLabel { margin-top: 6px; font-size: 14px; opacity: 0.9; }
+
+        .notice {
+          margin-top: 12px;
+          font-size: 12px;
+          color: #00ff66;
+          opacity: 0.7;
+          font-family: 'VT323', monospace;
+          text-align: center;
         }
 
-        /* Move layout to the TOP */
-        .crt {
-          padding-top: 10px; /* slight breathing room */
-        }
+        .crt { padding-top: 10px; }
       `}</style>
     </>
   );
