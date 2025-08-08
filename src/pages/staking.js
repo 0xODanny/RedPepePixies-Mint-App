@@ -32,8 +32,8 @@ export default function StakingTracker() {
     claimedTx: null,
     claimedTokenIds: null,
   });
-  const [serverPoints, setServerPoints] = useState(0); // points_rpepe from DB
-  const [lastUpdateIso, setLastUpdateIso] = useState(null); // last_update from DB
+  const [serverPoints, setServerPoints] = useState(0);        // points_rpepe from DB
+  const [lastUpdateIso, setLastUpdateIso] = useState(null);   // last_update from DB
   const [autoClaimed, setAutoClaimed] = useState(false);
 
   // Live progress (time-based)
@@ -61,8 +61,9 @@ export default function StakingTracker() {
         const daily = bal * 0.0003333 * (1 + 0.01 * n);
         setDailyPoints(daily);
 
-        // stage UI
+        // Stage UI
         setTimeout(() => setTypingDone(true), 800);
+        // Reveal the progress bar a touch later so it appears last
         setTimeout(() => setShowProgress(true), 1200);
       } catch (e) {
         console.error("fetch chain snapshot error", e);
@@ -71,7 +72,7 @@ export default function StakingTracker() {
     run();
   }, [address]);
 
-  // Pull server status (points so far + last update)
+  // Pull server status (points so far + last update) and auto-claim if eligible
   useEffect(() => {
     const run = async () => {
       if (!address) return;
@@ -86,11 +87,9 @@ export default function StakingTracker() {
             claimedTx: s.tx || null,
             claimedTokenIds: s.tokenIds || null,
           });
-          // ⬇️ adjust these keys if your API differs
           setServerPoints(Number(s.points_rpepe || 0));
           setLastUpdateIso(s.last_update || null);
 
-          // auto-claim if eligible
           if (s.eligible && !s.claimed && !autoClaimed) {
             const cRes = await fetch("/api/claim", {
               method: "POST",
@@ -108,7 +107,6 @@ export default function StakingTracker() {
                 claimedTx: c.tx,
                 claimedTokenIds: c.tokenIds.join(","),
               }));
-              // When claimed, you might reset serverPoints to TARGET, but we’ll just refetch on next poll.
             } else {
               console.warn("Claim failed:", c.error);
             }
@@ -123,7 +121,6 @@ export default function StakingTracker() {
 
   // Live accumulator: start/refresh interval whenever dailyPoints, serverPoints, lastUpdate change
   useEffect(() => {
-    // clean up prior timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -151,9 +148,13 @@ export default function StakingTracker() {
     };
   }, [dailyPoints, serverPoints, lastUpdateIso]);
 
-  const earnedPercent = useMemo(() => {
-    return Math.min(100, (livePoints / TARGET_POINTS) * 100) || 0;
-  }, [livePoints]);
+  const earnedPercent = useMemo(
+    () => Math.min(100, (livePoints / TARGET_POINTS) * 100) || 0,
+    [livePoints]
+  );
+
+   const progressMultiplier = Number(process.env.NEXT_PUBLIC_PROGRESS_MULTIPLIER || "1");
+   const earnedPercentBoosted = Math.min(100, earnedPercent * progressMultiplier);
 
   const daysRemaining = useMemo(() => {
     if (dailyPoints <= 0) return "∞";
@@ -161,9 +162,7 @@ export default function StakingTracker() {
     return (remaining / dailyPoints).toFixed(1);
   }, [dailyPoints, livePoints]);
 
-  const pointsPerDayText = useMemo(() => {
-    return (dailyPoints || 0).toFixed(2);
-  }, [dailyPoints]);
+  const pointsPerDayText = useMemo(() => (dailyPoints || 0).toFixed(2), [dailyPoints]);
 
   const handleRegister = async () => {
     if (!address) return;
@@ -253,14 +252,16 @@ export default function StakingTracker() {
               {showProgress && (
                 <div className="progressWrap">
                   <div className="progressTrack">
-                    <div className="progressFill" style={{ width: `${earnedPercent}%` }}>
-                      {/* Centered percent in RED */}
-                      <span className="progressText">{earnedPercent.toFixed(1)}%</span>
-                    </div>
+                    <div className="progressFill" style={{ width: `${earnedPercentBoosted}%` }}>
+  			<span className="progressText">{earnedPercentBoosted.toFixed(1)}%</span>
+		    </div>
                   </div>
                   <p className="progressLabel">Progress toward next NFT</p>
                   <p className="notice">
                     Once registered for staking, removal of $RPEPE or NFTs from this wallet will reset your earnings.
+                  </p>
+                  <p className="notice">
+                    Self-custody staking that allows the earning of another Red Pepe Pixie by the loyal $RPEPE and NFT hodler.
                   </p>
                   {/* Blinking cursor at the very bottom */}
                   <span className="caret" />
@@ -292,7 +293,7 @@ export default function StakingTracker() {
         @keyframes typing { from { width: 0; } to { width: 100%; } }
 
         .label { color: #00ff66; }
-        .num   { color: #ff3b30; }
+        .num   { color: #ff3b30; }   /* red numbers */
         .unit  { color: #00ff66; opacity: 0.9; }
         .ok    { color: #00ff66; }
         .note  { margin-top: 8px; opacity: 0.95; }
@@ -306,6 +307,7 @@ export default function StakingTracker() {
         }
         .btn:hover { border-color: #00ff66; }
 
+        /* Progress at the BOTTOM, compact width, shown last */
         .progressWrap { margin-top: 28px; }
         .progressTrack {
           width: 420px;
@@ -321,7 +323,7 @@ export default function StakingTracker() {
           background: #00ff66;
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: center; /* center % text */
           position: relative;
           transition: width 0.9s ease-in-out;
         }
@@ -341,6 +343,7 @@ export default function StakingTracker() {
           text-align: center;
         }
 
+        /* Blinking caret at the bottom */
         .caret {
           display: inline-block;
           width: 8px;
