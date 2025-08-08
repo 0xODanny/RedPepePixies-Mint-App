@@ -75,8 +75,28 @@ export default function Home() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        position: "relative",
       }}
     >
+      <a
+        href="/staking"
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          backgroundColor: "#28a745",
+          color: "#fff",
+          padding: "0.5rem 1rem",
+          borderRadius: "8px",
+          fontFamily: "monospace",
+          fontWeight: "bold",
+          textDecoration: "none",
+          border: "2px solid #1e7e34",
+        }}
+      >
+        💾 Stake Now to Earn More Pixies!
+      </a>
+
       <div
         style={{
           backgroundColor: "#111",
