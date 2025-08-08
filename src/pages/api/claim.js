@@ -1,7 +1,7 @@
 // /src/api/claim.js
 import { ethers } from "ethers";
 import pg from "pg";
-import pixiesAbi from "../../../abi/pixies.json";
+import pixiesAbi from "../../../../abi/pixies.json";
 
 const db = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
