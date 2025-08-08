@@ -27,6 +27,9 @@ export default function StakingTracker() {
   });
   const [autoClaimed, setAutoClaimed] = useState(false);
 
+  // Controls delaying the progress bar so it loads "last"
+  const [showProgress, setShowProgress] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!address || !rpc || !rpepeTokenAddress || !nftContractAddress) return;
@@ -49,7 +52,11 @@ export default function StakingTracker() {
 
         setPoints(dailyPoints.toFixed(2));
         setDaysRemaining(isFinite(projectedDays) ? projectedDays.toFixed(1) : "∞");
+
+        // Finish the top “typing” feel first…
         setTimeout(() => setTypingDone(true), 800);
+        // …then reveal the progress bar a touch later so it appears last
+        setTimeout(() => setShowProgress(true), 1200);
       } catch (err) {
         console.error("Failed to fetch staking data:", err);
       }
@@ -123,6 +130,7 @@ export default function StakingTracker() {
   return (
     <>
       <Head>
+        {/* Pixel font */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
@@ -142,29 +150,35 @@ export default function StakingTracker() {
             <p className="term">Connect your wallet to start staking tracking...</p>
           ) : (
             <div>
+              {/* Title (typing effect only; no caret here) */}
               <h1 className="title typewriter">Staking Status for {address}</h1>
 
               {typingDone && (
                 <div className="space-y-3">
                   <p className="term">
-                    <span className="label">Wallet status:</span> <span className="ok">✔ Wallet connected</span>
+                    <span className="label">Wallet status:</span>{" "}
+                    <span className="ok">✔ Wallet connected</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">$RPEPE Balance:</span> <span className="num">{balance.toLocaleString()}</span>
+                    <span className="label">$RPEPE Balance:</span>{" "}
+                    <span className="num">{balance.toLocaleString()}</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">Pixie NFTs:</span> <span className="num">{nfts}</span>
+                    <span className="label">Pixie NFTs:</span>{" "}
+                    <span className="num">{nfts}</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">Earning:</span> <span className="num">{points}</span>
+                    <span className="label">Earning:</span>{" "}
+                    <span className="num">{points}</span>
                     <span className="unit"> points/day</span>
                   </p>
 
                   <p className="term">
-                    <span className="label">Time until NFT:</span> <span className="num">{daysRemaining}</span>
+                    <span className="label">Time until NFT:</span>{" "}
+                    <span className="num">{daysRemaining}</span>
                     <span className="unit"> days</span>
                   </p>
 
@@ -179,17 +193,22 @@ export default function StakingTracker() {
                 </div>
               )}
 
-              <div className="progressWrap">
-                <div className="progressTrack">
-                  <div className="progressFill" style={{ width: `${earnedPercent}%` }}>
-                    <span className="progressText">{earnedPercent.toFixed(1)}%</span>
+              {/* Progress bar appears last */}
+              {showProgress && (
+                <div className="progressWrap">
+                  <div className="progressTrack">
+                    <div className="progressFill" style={{ width: `${earnedPercent}%` }}>
+                      <span className="progressText">{earnedPercent.toFixed(1)}%</span>
+                    </div>
                   </div>
+                  <p className="progressLabel">Progress toward next NFT</p>
+                  <p className="notice">
+                    Once registered for staking, removal of $RPEPE or NFTs from this wallet will reset your earnings.
+                  </p>
+                  {/* Blinking cursor at the very bottom */}
+                  <span className="caret" />
                 </div>
-                <p className="progressLabel">Progress toward next NFT</p>
-                <p className="notice">
-                  Once registered for staking, removal of $RPEPE or NFTs from this wallet will reset your earnings.
-                </p>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -202,36 +221,35 @@ export default function StakingTracker() {
         .term,
         .title,
         .btn,
-        .progressLabel {
+        .progressLabel,
+        .notice {
           font-family: 'VT323', monospace;
-          color: #00ff66;
+          color: #00ff66; /* green text */
           letter-spacing: 0.5px;
         }
         .title {
-          font-size: 22px;
+          font-size: 22px; /* normal-ish size */
           margin: 8px 0 16px;
           overflow: hidden;
           display: inline-block; /* fixes trailing gap */
-          border-right: 2px solid #00ff66; /* caret */
         }
+        /* Typewriter effect on the title (no caret) */
         .typewriter {
-          animation: typing 1.5s steps(40, end), blink-caret 1s step-end infinite;
+          animation: typing 1.3s steps(40, end);
+          white-space: nowrap;
         }
         @keyframes typing {
           from { width: 0; }
           to { width: 100%; }
         }
-        @keyframes blink-caret {
-          from, to { border-color: transparent; }
-          50% { border-color: #00ff66; }
-        }
 
         .label { color: #00ff66; }
-        .num { color: #ff3b30; }
+        .num { color: #ff3b30; }         /* red numbers */
         .unit { color: #00ff66; opacity: 0.9; }
         .ok { color: #00ff66; }
         .note { margin-top: 8px; opacity: 0.95; }
 
+        /* Button */
         .btn {
           background: #111;
           border: 1px solid #2a2a2a;
@@ -241,11 +259,12 @@ export default function StakingTracker() {
         }
         .btn:hover { border-color: #00ff66; }
 
+        /* Progress at the BOTTOM, compact width, shown last */
         .progressWrap { margin-top: 28px; }
         .progressTrack {
-          width: 420px;
+          width: 420px;        /* compact so it fits on laptops */
           max-width: 100%;
-          height: 14px;
+          height: 14px;        /* shorter bar */
           background: #0a0a0a;
           border: 1px solid #1f1f1f;
           border-radius: 7px;
@@ -273,10 +292,25 @@ export default function StakingTracker() {
           font-size: 12px;
           color: #00ff66;
           opacity: 0.7;
-          font-family: 'VT323', monospace;
           text-align: center;
         }
 
+        /* Blinking caret at the bottom */
+        .caret {
+          display: inline-block;
+          width: 8px;
+          height: 18px;
+          background-color: #00ff66;
+          margin-left: 4px;
+          animation: blink-caret 1s step-end infinite;
+          vertical-align: bottom;
+        }
+        @keyframes blink-caret {
+          from, to { background-color: transparent; }
+          50% { background-color: #00ff66; }
+        }
+
+        /* Move layout to the TOP */
         .crt { padding-top: 10px; }
       `}</style>
     </>
