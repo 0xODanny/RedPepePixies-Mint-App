@@ -2,8 +2,8 @@
 import { ethers } from "ethers";
 import pg from "pg";
 
-import erc20Abi from "../../../../abi/redpepe.json";
-import pixiesAbi from "../../../../abi/pixies.json";
+import erc20Abi from "../../../abi/redpepe.json";
+import pixiesAbi from "../../../abi/pixies.json";
 const {
   AVAX_RPC,
   CONTRACT_ADDRESS,

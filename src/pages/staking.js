@@ -2,8 +2,8 @@
 import { useAddress, ConnectWallet } from "@thirdweb-dev/react";
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import pixiesAbi from "../../../abi/pixies.json";
-import erc20Abi from "../../../abi/redpepe.json";
+import pixiesAbi from "../../abi/pixies.json";
+import erc20Abi from "../../abi/redpepe.json";
 
 const rpepeTokenAddress = (process.env.NEXT_PUBLIC_RPEPE_TOKEN_ADDRESS || "").trim();
 const rpc = (process.env.NEXT_PUBLIC_AVAX_RPC || "").trim();
