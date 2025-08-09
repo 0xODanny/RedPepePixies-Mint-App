@@ -7,7 +7,7 @@ import pixiesAbi from "../../../../abi/pixies.json";
 const {
   DATABASE_URL,
   AVAX_RPC,
-  CRON_KEY, // optional: set to a random secret if you also want to hit this manually
+  CRON_SECRET, // <-- Vercel Cron secret you add in env vars
 } = process.env;
 
 // Prefer server-side addresses, fall back to NEXT_PUBLIC_* if that's what you have set
@@ -19,7 +19,7 @@ const PIXIES_ADDRESS =
   process.env.PIXIES_CONTRACT_ADDRESS ||
   process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS;
 
-// Staking math
+// ---- Staking math ----
 const POINTS_RPEPE_PER_TOKEN = 0.0003333;
 const PIXIE_BONUS            = 0.01;
 const RPEPE_TARGET           = 6942;
@@ -31,19 +31,12 @@ const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC);
 const rpepe   = new ethers.Contract(RPEPE_ADDRESS, erc20Abi, provider);
 const pixies  = new ethers.Contract(PIXIES_ADDRESS, pixiesAbi, provider);
 
-// Optional guard: allow Vercel Cron (which sets x-vercel-cron) OR a bearer CRON_KEY
-function isAuthorized(req) {
-  if (req.headers["x-vercel-cron"]) return true;
-  if (!CRON_KEY) return true; // if you didn't set a key, don't block
-  const auth = req.headers.authorization || "";
-  return auth === `Bearer ${CRON_KEY}`;
-}
-
 export default async function handler(req, res) {
-  if (req.method !== "GET" && req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "Method not allowed" });
-  }
-  if (!isAuthorized(req)) {
+  // Allow: Vercel Cron (adds x-vercel-cron) OR Bearer CRON_SECRET
+  if (
+    req.headers.authorization !== `Bearer ${CRON_SECRET}` &&
+    !req.headers["x-vercel-cron"]
+  ) {
     return res.status(401).json({ ok: false, error: "Unauthorized" });
   }
 
@@ -55,13 +48,14 @@ export default async function handler(req, res) {
     );
 
     if (!users.length) {
+      console.log("No users to process.");
       return res.status(200).json({ ok: true, processed: 0, updated: 0, eligibleUpdated: 0 });
     }
 
     let updated = 0;
     let eligibleUpdated = 0;
 
-    // Process sequentially to avoid RPC bursts/timeouts; fine for small sets
+    // Process sequentially to avoid RPC bursts/timeouts
     for (const u of users) {
       const wallet = (u.wallet || "").toLowerCase();
       if (!wallet) continue;
@@ -75,10 +69,10 @@ export default async function handler(req, res) {
       const lastUpdate = u.last_update ? new Date(u.last_update) : null;
       const hours = lastUpdate ? Math.floor((now - lastUpdate) / (1000 * 60 * 60)) : 1;
 
-      // Nothing to do if < 1 hour elapsed
+      // Skip if less than 1 hour elapsed
       if (hours < 1) continue;
 
-      // Accrue logic
+      // Accrue
       let pointsR = Number(u.points_rpepe || 0);
 
       if (rpepeBal >= Number(u.initial_rpepe || 0)) {
@@ -108,15 +102,16 @@ export default async function handler(req, res) {
       if (becameEligible) eligibleUpdated += 1;
     }
 
+    console.log(`Cron ran: processed=${users.length} updated=${updated} eligibleUpdated=${eligibleUpdated}`);
     return res.status(200).json({
       ok: true,
       processed: users.length,
       updated,
       eligibleUpdated,
-      ts: new Date().toISOString(),
+      ranAt: new Date().toISOString(),
     });
-  } catch (e) {
-    console.error("cron/track error:", e);
-    return res.status(500).json({ ok: false, error: "Tracker failed" });
+  } catch (err) {
+    console.error("cron/track error:", err);
+    return res.status(500).json({ ok: false, error: err.message || "Tracker failed" });
   }
 }
