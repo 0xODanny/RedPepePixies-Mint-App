@@ -10,8 +10,10 @@ const rpepeTokenAddress = (process.env.NEXT_PUBLIC_RPEPE_TOKEN_ADDRESS || "").tr
 const rpc               = (process.env.NEXT_PUBLIC_AVAX_RPC || "").trim();
 const nftContractAddr   = (process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS || "").trim();
 
-const TARGET_POINTS   = 6942;
-const SECONDS_PER_DAY = 86400;
+const TARGET_POINTS     = 6942;
+const SECONDS_PER_DAY   = 86400;
+// ⬇️ same as backend so UI matches accrual logic
+const RPEPE_DAILY_MAX   = 234.1;
 
 export default function StakingTracker() {
   const address = useAddress();
@@ -25,6 +27,7 @@ export default function StakingTracker() {
   const [balance, setBalance] = useState(0);
   const [nfts, setNfts] = useState(0);
   const [dailyPoints, setDailyPoints] = useState(0);
+  const [isCapped, setIsCapped] = useState(false); // show "(capped at 234.1/day)" when true
 
   // Server staking status
   const [status, setStatus] = useState({
@@ -44,7 +47,7 @@ export default function StakingTracker() {
   // Mint success modal state
   const [mintSuccess, setMintSuccess] = useState(null); // string of tokenIds, e.g. "253" or "253, 254"
 
-  // Fetch on-chain snapshot (balance, nfts) → compute daily rate
+  // Fetch on-chain snapshot (balance, nfts) → compute daily rate (capped to backend)
   useEffect(() => {
     const run = async () => {
       if (!address || !rpc || !rpepeTokenAddress || !nftContractAddr) return;
@@ -62,8 +65,10 @@ export default function StakingTracker() {
         const n = count.toNumber();
         setNfts(n);
 
-        const daily = bal * 0.0003333 * (1 + 0.01 * n);
-        setDailyPoints(daily);
+        const uncapped = bal * 0.0003333 * (1 + 0.01 * n);
+        const capped   = Math.min(uncapped, RPEPE_DAILY_MAX);
+        setDailyPoints(capped);
+        setIsCapped(uncapped > RPEPE_DAILY_MAX);
 
         // Stage UI: title finishes typing, then lines appear, then progress
         setTimeout(() => setTypingDone(true), 800);
@@ -115,7 +120,7 @@ export default function StakingTracker() {
             const c = await cRes.json();
             if (c.success) {
               setAutoClaimed(true);
-              setMintSuccess(c.tokenIds.join(", ")); // <-- OPEN MODAL instead of alert
+              setMintSuccess(c.tokenIds.join(", "));
               setStatus((prev) => ({
                 ...prev,
                 eligible: true,
@@ -151,13 +156,12 @@ export default function StakingTracker() {
     const tick = () => {
       const now = Date.now();
       const elapsedSec = Math.max(0, (now - lastUpdate) / 1000);
-      const accrued = (dailyPoints * elapsedSec) / SECONDS_PER_DAY;
+      const accrued = (dailyPoints * elapsedSec) / SECONDS_PER_DAY; // dailyPoints is already capped
       const current = Math.min(TARGET_POINTS, serverPoints + accrued);
       setLivePoints(current);
     };
 
-    // prime immediately so UI updates without 1s delay
-    tick();
+    tick(); // prime immediately
     timerRef.current = setInterval(tick, 1000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -169,7 +173,7 @@ export default function StakingTracker() {
     [livePoints]
   );
 
-  // Optional visual speed-up (doesn't alter server accrual): set env NEXT_PUBLIC_PROGRESS_MULTIPLIER
+  // Optional visual speed-up (doesn't alter server accrual)
   const progressMultiplier = Number(process.env.NEXT_PUBLIC_PROGRESS_MULTIPLIER || "1");
   const earnedPercentBoosted = Math.min(100, earnedPercent * progressMultiplier);
 
@@ -204,7 +208,6 @@ export default function StakingTracker() {
   return (
     <>
       <Head>
-        {/* Pixel font */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
@@ -256,6 +259,7 @@ export default function StakingTracker() {
                       <span className="label">Earning:</span>{" "}
                       <span className="num">{pointsPerDayText}</span>
                       <span className="unit"> points/day</span>
+                      {isCapped && <span className="capNote"> (capped at {RPEPE_DAILY_MAX}/day)</span>}
                     </p>
                   )}
                   {showLine >= 5 && (
@@ -282,7 +286,6 @@ export default function StakingTracker() {
                 <div className="progressWrap">
                   <div className="progressTrack">
                     <div className="progressFill" style={{ width: `${earnedPercentBoosted}%` }}>
-                      {/* Centered percent in RED */}
                       <span className="progressText">{earnedPercentBoosted.toFixed(1)}%</span>
                     </div>
                   </div>
@@ -293,7 +296,6 @@ export default function StakingTracker() {
                   <p className="notice">
                     Self-custody staking that allows the earning of another Red Pepe Pixie by the loyal $RPEPE and NFT hodler.
                   </p>
-                  {/* Blinking cursor at the very bottom */}
                   <span className="caret" />
                 </div>
               )}
@@ -347,10 +349,11 @@ export default function StakingTracker() {
         @keyframes typing { from { width: 0; } to { width: 100%; } }
 
         .label { color: #00ff66; }
-        .num   { color: #ff3b30; }   /* red numbers */
+        .num   { color: #ff3b30; }
         .unit  { color: #00ff66; opacity: 0.9; }
         .ok    { color: #00ff66; }
         .note  { margin-top: 8px; opacity: 0.95; }
+        .capNote { margin-left: 6px; opacity: 0.8; }
 
         .btn {
           background: #111;
@@ -361,7 +364,6 @@ export default function StakingTracker() {
         }
         .btn:hover { border-color: #00ff66; }
 
-        /* Progress at the BOTTOM, compact width, shown last */
         .progressWrap { margin-top: 28px; }
         .progressTrack {
           width: 420px;
@@ -382,7 +384,7 @@ export default function StakingTracker() {
           transition: width 0.9s ease-in-out;
         }
         .progressText {
-          color: #ff3b30; /* red % text */
+          color: #ff3b30;
           font-family: 'VT323', monospace;
           font-size: 12px;
           line-height: 1;
@@ -397,7 +399,6 @@ export default function StakingTracker() {
           text-align: center;
         }
 
-        /* Blinking caret at the bottom */
         .caret {
           display: inline-block;
           width: 8px;
@@ -427,7 +428,7 @@ export default function StakingTracker() {
           left: 50%;
           transform: translate(-50%, -50%);
           background: #fff;
-          border: 4px solid #ff3b30; /* red border */
+          border: 4px solid #ff3b30;
           padding: 20px 18px;
           z-index: 9999;
           text-align: center;
@@ -438,14 +439,8 @@ export default function StakingTracker() {
           border-radius: 10px;
           box-shadow: 0 8px 24px rgba(0,0,0,0.35);
         }
-        .mintModal h1 {
-          font-size: 28px;
-          margin: 0 0 10px;
-        }
-        .mintModal h2 {
-          font-size: 20px;
-          margin: 6px 0;
-        }
+        .mintModal h1 { font-size: 28px; margin: 0 0 10px; }
+        .mintModal h2 { font-size: 20px; margin: 6px 0; }
         .mintModal button {
           margin-top: 14px;
           background: #ff3b30;
@@ -457,9 +452,7 @@ export default function StakingTracker() {
           font-size: 18px;
           border-radius: 6px;
         }
-        .mintModal button:hover {
-          filter: brightness(0.92);
-        }
+        .mintModal button:hover { filter: brightness(0.92); }
       `}</style>
     </>
   );
