@@ -10,7 +10,7 @@ const rpepeTokenAddress = (process.env.NEXT_PUBLIC_RPEPE_TOKEN_ADDRESS || "").tr
 const rpc               = (process.env.NEXT_PUBLIC_AVAX_RPC || "").trim();
 const nftContractAddr   = (process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS || "").trim();
 
-const TARGET_POINTS = 6942;
+const TARGET_POINTS   = 6942;
 const SECONDS_PER_DAY = 86400;
 
 export default function StakingTracker() {
@@ -19,6 +19,7 @@ export default function StakingTracker() {
   // UI state
   const [typingDone, setTypingDone] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
+  const [showLine, setShowLine] = useState(0); // sequential reveal of lines
 
   // Wallet snapshot
   const [balance, setBalance] = useState(0);
@@ -61,9 +62,8 @@ export default function StakingTracker() {
         const daily = bal * 0.0003333 * (1 + 0.01 * n);
         setDailyPoints(daily);
 
-        // Stage UI
+        // Stage UI: title finishes typing, then lines appear, then progress
         setTimeout(() => setTypingDone(true), 800);
-        // Reveal the progress bar a touch later so it appears last
         setTimeout(() => setShowProgress(true), 1200);
       } catch (e) {
         console.error("fetch chain snapshot error", e);
@@ -71,6 +71,19 @@ export default function StakingTracker() {
     };
     run();
   }, [address]);
+
+  // After the title "types", reveal each stat line every 0.5s
+  useEffect(() => {
+    if (!typingDone) return;
+    setShowLine(0);
+    let i = 1;
+    const timer = setInterval(() => {
+      setShowLine(i);
+      i += 1;
+      if (i > 5) clearInterval(timer);
+    }, 500);
+    return () => clearInterval(timer);
+  }, [typingDone]);
 
   // Pull server status (points so far + last update) and auto-claim if eligible
   useEffect(() => {
@@ -153,8 +166,9 @@ export default function StakingTracker() {
     [livePoints]
   );
 
-   const progressMultiplier = Number(process.env.NEXT_PUBLIC_PROGRESS_MULTIPLIER || "1");
-   const earnedPercentBoosted = Math.min(100, earnedPercent * progressMultiplier);
+  // Optional visual speed-up (doesn't alter server accrual): set env NEXT_PUBLIC_PROGRESS_MULTIPLIER
+  const progressMultiplier = Number(process.env.NEXT_PUBLIC_PROGRESS_MULTIPLIER || "1");
+  const earnedPercentBoosted = Math.min(100, earnedPercent * progressMultiplier);
 
   const daysRemaining = useMemo(() => {
     if (dailyPoints <= 0) return "∞";
@@ -205,37 +219,49 @@ export default function StakingTracker() {
             <p className="term">Connect your wallet to start staking tracking...</p>
           ) : (
             <div>
-              {/* Title (typing effect only; no caret here) */}
-              <h1 className="title typewriter">Staking Status for {address}</h1>
+              {/* Top welcome messages */}
+              <h1 className="welcome-main">Welcome to $RPEPE Self-Custody Staking!</h1>
+              <h2 className="welcome-sub">Earn an NFT just by holding $RPEPE!</h2>
+
+              {/* Staking status with short wallet */}
+              <h2 className="title typewriter">
+                Staking Status for {address.slice(0, 6)}...{address.slice(-4)}
+              </h2>
 
               {typingDone && (
-                <div className="space-y-3">
-                  <p className="term">
-                    <span className="label">Wallet status:</span>{" "}
-                    <span className="ok">✔ Wallet connected</span>
-                  </p>
-
-                  <p className="term">
-                    <span className="label">$RPEPE Balance:</span>{" "}
-                    <span className="num">{balance.toLocaleString()}</span>
-                  </p>
-
-                  <p className="term">
-                    <span className="label">Pixie NFTs:</span>{" "}
-                    <span className="num">{nfts}</span>
-                  </p>
-
-                  <p className="term">
-                    <span className="label">Earning:</span>{" "}
-                    <span className="num">{pointsPerDayText}</span>
-                    <span className="unit"> points/day</span>
-                  </p>
-
-                  <p className="term">
-                    <span className="label">Time until NFT:</span>{" "}
-                    <span className="num">{daysRemaining}</span>
-                    <span className="unit"> days</span>
-                  </p>
+                <div>
+                  {showLine >= 1 && (
+                    <p className="term">
+                      <span className="label">Wallet status:</span>{" "}
+                      <span className="ok">✔ Wallet connected</span>
+                    </p>
+                  )}
+                  {showLine >= 2 && (
+                    <p className="term">
+                      <span className="label">$RPEPE Balance:</span>{" "}
+                      <span className="num">{balance.toLocaleString()}</span>
+                    </p>
+                  )}
+                  {showLine >= 3 && (
+                    <p className="term">
+                      <span className="label">Pixie NFTs:</span>{" "}
+                      <span className="num">{nfts}</span>
+                    </p>
+                  )}
+                  {showLine >= 4 && (
+                    <p className="term">
+                      <span className="label">Earning:</span>{" "}
+                      <span className="num">{pointsPerDayText}</span>
+                      <span className="unit"> points/day</span>
+                    </p>
+                  )}
+                  {showLine >= 5 && (
+                    <p className="term">
+                      <span className="label">Time until NFT:</span>{" "}
+                      <span className="num">{daysRemaining}</span>
+                      <span className="unit"> days</span>
+                    </p>
+                  )}
 
                   {status.claimed && (
                     <p className="term note">
@@ -253,8 +279,9 @@ export default function StakingTracker() {
                 <div className="progressWrap">
                   <div className="progressTrack">
                     <div className="progressFill" style={{ width: `${earnedPercentBoosted}%` }}>
-  			<span className="progressText">{earnedPercentBoosted.toFixed(1)}%</span>
-		    </div>
+                      {/* Centered percent in RED */}
+                      <span className="progressText">{earnedPercentBoosted.toFixed(1)}%</span>
+                    </div>
                   </div>
                   <p className="progressLabel">Progress toward next NFT</p>
                   <p className="notice">
@@ -275,6 +302,19 @@ export default function StakingTracker() {
       <style jsx>{`
         :global(html, body) { background: #000; }
 
+        .welcome-main {
+          font-size: 26px;
+          color: #00ff66;
+          font-family: 'VT323', monospace;
+          margin-bottom: 4px;
+        }
+        .welcome-sub {
+          font-size: 18px;
+          color: #00ff66;
+          font-family: 'VT323', monospace;
+          margin-bottom: 16px;
+        }
+
         .term, .title, .btn, .progressLabel, .notice {
           font-family: 'VT323', monospace;
           color: #00ff66;
@@ -285,10 +325,10 @@ export default function StakingTracker() {
           margin: 8px 0 16px;
           overflow: hidden;
           display: inline-block;
+          white-space: nowrap;
         }
         .typewriter {
           animation: typing 1.3s steps(40, end);
-          white-space: nowrap;
         }
         @keyframes typing { from { width: 0; } to { width: 100%; } }
 
@@ -323,7 +363,7 @@ export default function StakingTracker() {
           background: #00ff66;
           display: flex;
           align-items: center;
-          justify-content: center; /* center % text */
+          justify-content: center;
           position: relative;
           transition: width 0.9s ease-in-out;
         }
