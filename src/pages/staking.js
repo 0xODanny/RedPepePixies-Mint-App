@@ -41,6 +41,9 @@ export default function StakingTracker() {
   const [livePoints, setLivePoints] = useState(0);
   const timerRef = useRef(null);
 
+  // Mint success modal state
+  const [mintSuccess, setMintSuccess] = useState(null); // string of tokenIds, e.g. "253" or "253, 254"
+
   // Fetch on-chain snapshot (balance, nfts) → compute daily rate
   useEffect(() => {
     const run = async () => {
@@ -112,7 +115,7 @@ export default function StakingTracker() {
             const c = await cRes.json();
             if (c.success) {
               setAutoClaimed(true);
-              alert(`Free Pixie minted! Token IDs: ${c.tokenIds.join(", ")}`);
+              setMintSuccess(c.tokenIds.join(", ")); // <-- OPEN MODAL instead of alert
               setStatus((prev) => ({
                 ...prev,
                 eligible: true,
@@ -299,6 +302,19 @@ export default function StakingTracker() {
         </div>
       </div>
 
+      {/* Success Modal */}
+      {mintSuccess && (
+        <>
+          <div className="mintBackdrop" onClick={() => setMintSuccess(null)} />
+          <div className="mintModal">
+            <h1>Congratulations!</h1>
+            <h2>Thank you for hodling $RPEPE all this time!</h2>
+            <h2>We have minted Red Pepe Pixie {mintSuccess} for you in return!</h2>
+            <button onClick={() => setMintSuccess(null)}>Close</button>
+          </div>
+        </>
+      )}
+
       <style jsx>{`
         :global(html, body) { background: #000; }
 
@@ -327,9 +343,7 @@ export default function StakingTracker() {
           display: inline-block;
           white-space: nowrap;
         }
-        .typewriter {
-          animation: typing 1.3s steps(40, end);
-        }
+        .typewriter { animation: typing 1.3s steps(40, end); }
         @keyframes typing { from { width: 0; } to { width: 100%; } }
 
         .label { color: #00ff66; }
@@ -399,6 +413,53 @@ export default function StakingTracker() {
         }
 
         .crt { padding-top: 10px; }
+
+        /* Success Modal styles */
+        .mintBackdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 9998;
+        }
+        .mintModal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: #fff;
+          border: 4px solid #ff3b30; /* red border */
+          padding: 20px 18px;
+          z-index: 9999;
+          text-align: center;
+          font-family: 'VT323', monospace;
+          color: #000;
+          width: 92%;
+          max-width: 420px;
+          border-radius: 10px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        }
+        .mintModal h1 {
+          font-size: 28px;
+          margin: 0 0 10px;
+        }
+        .mintModal h2 {
+          font-size: 20px;
+          margin: 6px 0;
+        }
+        .mintModal button {
+          margin-top: 14px;
+          background: #ff3b30;
+          color: #fff;
+          border: none;
+          padding: 6px 12px;
+          cursor: pointer;
+          font-family: 'VT323', monospace;
+          font-size: 18px;
+          border-radius: 6px;
+        }
+        .mintModal button:hover {
+          filter: brightness(0.92);
+        }
       `}</style>
     </>
   );
