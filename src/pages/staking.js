@@ -10,10 +10,14 @@ const rpepeTokenAddress = (process.env.NEXT_PUBLIC_RPEPE_TOKEN_ADDRESS || "").tr
 const rpc               = (process.env.NEXT_PUBLIC_AVAX_RPC || "").trim();
 const nftContractAddr   = (process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS || "").trim();
 
-const TARGET_POINTS     = 6942;
-const SECONDS_PER_DAY   = 86400;
-// ⬇️ same as backend so UI matches accrual logic
-const RPEPE_DAILY_MAX   = 234.1;
+const TARGET_POINTS   = 6942;
+const SECONDS_PER_DAY = 86400;
+
+// staking math (matches backend)
+const RATE_PER_RPEPE  = 0.0003333; // pts per token per day
+const MAX_DAILY_BASE  = 234.1;     // base cap (≈1% supply effect)
+const NFT_BONUS_PER   = 0.005;     // +0.5% per NFT
+const NFT_BONUS_CAP   = 50;        // up to +25%
 
 export default function StakingTracker() {
   const address = useAddress();
@@ -21,13 +25,14 @@ export default function StakingTracker() {
   // UI state
   const [typingDone, setTypingDone] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
-  const [showLine, setShowLine] = useState(0); // sequential reveal of lines
+  const [showLine, setShowLine] = useState(0); // sequential reveal
 
   // Wallet snapshot
   const [balance, setBalance] = useState(0);
   const [nfts, setNfts] = useState(0);
   const [dailyPoints, setDailyPoints] = useState(0);
-  const [isCapped, setIsCapped] = useState(false); // show "(capped at 234.1/day)" when true
+  const [isBaseCapped, setIsBaseCapped] = useState(false);
+  const [boostPct, setBoostPct] = useState(0); // 0..25
 
   // Server staking status
   const [status, setStatus] = useState({
@@ -36,8 +41,8 @@ export default function StakingTracker() {
     claimedTx: null,
     claimedTokenIds: null,
   });
-  const [serverPoints, setServerPoints] = useState(0);        // points_rpepe from DB
-  const [lastUpdateIso, setLastUpdateIso] = useState(null);   // last_update from DB
+  const [serverPoints, setServerPoints] = useState(0);
+  const [lastUpdateIso, setLastUpdateIso] = useState(null);
   const [autoClaimed, setAutoClaimed] = useState(false);
 
   // Live progress (time-based)
@@ -45,9 +50,9 @@ export default function StakingTracker() {
   const timerRef = useRef(null);
 
   // Mint success modal state
-  const [mintSuccess, setMintSuccess] = useState(null); // string of tokenIds, e.g. "253" or "253, 254"
+  const [mintSuccess, setMintSuccess] = useState(null); // "253" or "253, 254"
 
-  // Fetch on-chain snapshot (balance, nfts) → compute daily rate (capped to backend)
+  // Fetch on-chain snapshot → compute daily rate (base cap, then NFT boost)
   useEffect(() => {
     const run = async () => {
       if (!address || !rpc || !rpepeTokenAddress || !nftContractAddr) return;
@@ -65,12 +70,17 @@ export default function StakingTracker() {
         const n = count.toNumber();
         setNfts(n);
 
-        const uncapped = bal * 0.0003333 * (1 + 0.01 * n);
-        const capped   = Math.min(uncapped, RPEPE_DAILY_MAX);
-        setDailyPoints(capped);
-        setIsCapped(uncapped > RPEPE_DAILY_MAX);
+        // base → cap → boost
+        const baseUncapped = bal * RATE_PER_RPEPE;
+        const baseCapped   = Math.min(baseUncapped, MAX_DAILY_BASE);
+        const boostFactor  = 1 + NFT_BONUS_PER * Math.min(n, NFT_BONUS_CAP); // up to 1.25x
+        const daily        = baseCapped * boostFactor;
 
-        // Stage UI: title finishes typing, then lines appear, then progress
+        setDailyPoints(daily);
+        setIsBaseCapped(baseUncapped > MAX_DAILY_BASE);
+        setBoostPct(((boostFactor - 1) * 100).toFixed(0)); // 0..25
+
+        // Stage UI
         setTimeout(() => setTypingDone(true), 800);
         setTimeout(() => setShowProgress(true), 1200);
       } catch (e) {
@@ -80,20 +90,19 @@ export default function StakingTracker() {
     run();
   }, [address]);
 
-  // After the title "types", reveal each stat line every 0.5s
+  // After title "types", reveal each stat line every 0.5s
   useEffect(() => {
     if (!typingDone) return;
     setShowLine(0);
     let i = 1;
-    const timer = setInterval(() => {
-      setShowLine(i);
-      i += 1;
-      if (i > 5) clearInterval(timer);
+    const t = setInterval(() => {
+      setShowLine(i++);
+      if (i > 5) clearInterval(t);
     }, 500);
-    return () => clearInterval(timer);
+    return () => clearInterval(t);
   }, [typingDone]);
 
-  // Pull server status (points so far + last update) and auto-claim if eligible
+  // Pull server status and auto-claim if eligible
   useEffect(() => {
     const run = async () => {
       if (!address) return;
@@ -140,7 +149,7 @@ export default function StakingTracker() {
     run();
   }, [address, autoClaimed]);
 
-  // Live accumulator: start/refresh interval whenever dailyPoints, serverPoints, lastUpdate change
+  // Live accumulator (hourly accrual simulated client‑side to match server)
   useEffect(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -156,16 +165,14 @@ export default function StakingTracker() {
     const tick = () => {
       const now = Date.now();
       const elapsedSec = Math.max(0, (now - lastUpdate) / 1000);
-      const accrued = (dailyPoints * elapsedSec) / SECONDS_PER_DAY; // dailyPoints is already capped
+      const accrued = (dailyPoints * elapsedSec) / SECONDS_PER_DAY;
       const current = Math.min(TARGET_POINTS, serverPoints + accrued);
       setLivePoints(current);
     };
 
-    tick(); // prime immediately
+    tick(); // prime
     timerRef.current = setInterval(tick, 1000);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    return () => timerRef.current && clearInterval(timerRef.current);
   }, [dailyPoints, serverPoints, lastUpdateIso]);
 
   const earnedPercent = useMemo(
@@ -259,7 +266,13 @@ export default function StakingTracker() {
                       <span className="label">Earning:</span>{" "}
                       <span className="num">{pointsPerDayText}</span>
                       <span className="unit"> points/day</span>
-                      {isCapped && <span className="capNote"> (capped at {RPEPE_DAILY_MAX}/day)</span>}
+                      {(isBaseCapped || Number(boostPct) > 0) && (
+                        <span className="capNote">
+                          {isBaseCapped ? ` (base capped at ${MAX_DAILY_BASE}/day` : " ("}
+                          {Number(boostPct) > 0 ? `${isBaseCapped ? "; " : ""}+${boostPct}% from NFTs` : ""}
+                          {")"}
+                        </span>
+                      )}
                     </p>
                   )}
                   {showLine >= 5 && (
