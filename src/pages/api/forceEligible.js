@@ -2,12 +2,12 @@
 import pg from "pg";
 
 const db = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-
-// simple auth so randos can't hit this
-const FORCE_KEY = process.env.FORCE_KEY; // set this in Vercel
+const FORCE_KEY = process.env.FORCE_KEY || "whyjustbecause";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ success: false, error: "Method not allowed" });
+  }
 
   try {
     const { address, key } = req.body || {};
@@ -16,9 +16,7 @@ export default async function handler(req, res) {
 
     await db.query(
       `UPDATE staking_users
-         SET points_rpepe = 6942,
-             eligible_for_nft = TRUE,
-             last_update = NOW()
+         SET eligible_for_nft = TRUE
        WHERE lower(wallet) = lower($1)`,
       [address]
     );
@@ -26,6 +24,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true });
   } catch (e) {
     console.error("forceEligible error", e);
-    return res.status(500).json({ success: false, error: "forceEligible failed" });
+    return res.status(500).json({ success: false, error: "Internal error" });
   }
 }
