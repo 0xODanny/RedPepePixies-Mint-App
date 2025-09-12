@@ -390,13 +390,24 @@ export default function StakingTracker() {
         .capNote { margin-left: 6px; opacity: 0.8; }
 
         .btn {
-          background: #111;
-          border: 1px solid #2a2a2a;
-          padding: 6px 12px;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        .btn:hover { border-color: #00ff66; }
+  	background: #000;
+  	border: 3px solid #00ff66; /* thicker neon-green border */
+  	padding: 12px 24px;        /* larger padding for size */
+  	border-radius: 10px;
+  	cursor: pointer;
+  	font-family: 'VT323', monospace;
+  	font-size: 22px;           /* larger text */
+  	color: #00ff66;            /* green text */
+  	font-weight: bold;
+  	text-transform: uppercase;
+  	transition: all 0.2s ease-in-out;
+  	box-shadow: 0 0 12px rgba(0, 255, 102, 0.7); /* glowing green effect */
+	}
+	.btn:hover {
+  	background: #00ff66;
+  	color: #000;
+  	box-shadow: 0 0 18px rgba(0, 255, 102, 1);
+	}
 
         .progressWrap { margin-top: 28px; }
         .progressTrack {
