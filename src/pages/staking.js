@@ -43,7 +43,6 @@ export default function StakingTracker() {
   });
   const [serverPoints, setServerPoints] = useState(0);
   const [lastUpdateIso, setLastUpdateIso] = useState(null);
-  const [autoClaimed, setAutoClaimed] = useState(false);
 
   // Live progress (time-based)
   const [livePoints, setLivePoints] = useState(0);
@@ -51,6 +50,9 @@ export default function StakingTracker() {
 
   // Mint success modal state
   const [mintSuccess, setMintSuccess] = useState(null); // "253" or "253, 254"
+
+  // Redeem button state
+  const [redeeming, setRedeeming] = useState(false);
 
   // Fetch on-chain snapshot → compute daily rate (base cap, then NFT boost)
   useEffect(() => {
@@ -102,7 +104,7 @@ export default function StakingTracker() {
     return () => clearInterval(t);
   }, [typingDone]);
 
-  // Pull server status and auto-claim if eligible
+  // Pull server status (no auto-claim)
   useEffect(() => {
     const run = async () => {
       if (!address) return;
@@ -119,37 +121,15 @@ export default function StakingTracker() {
           });
           setServerPoints(Number(s.points_rpepe || 0));
           setLastUpdateIso(s.last_update || null);
-
-          if (s.eligible && !s.claimed && !autoClaimed) {
-            const cRes = await fetch("/api/claim", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ address }),
-            });
-            const c = await cRes.json();
-            if (c.success) {
-              setAutoClaimed(true);
-              setMintSuccess(c.tokenIds.join(", "));
-              setStatus((prev) => ({
-                ...prev,
-                eligible: true,
-                claimed: true,
-                claimedTx: c.tx,
-                claimedTokenIds: c.tokenIds.join(","),
-              }));
-            } else {
-              console.warn("Claim failed:", c.error);
-            }
-          }
         }
       } catch (e) {
         console.error("status error", e);
       }
     };
     run();
-  }, [address, autoClaimed]);
+  }, [address]);
 
-  // Live accumulator (hourly accrual simulated client‑side to match server)
+  // Live accumulator (hourly accrual simulated client-side to match server)
   useEffect(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -209,6 +189,40 @@ export default function StakingTracker() {
     } catch (err) {
       console.error("Register error:", err);
       alert("Registration failed.");
+    }
+  };
+
+  // Click handler for the Redeem button
+  const handleRedeem = async () => {
+    if (!address) return;
+    try {
+      setRedeeming(true);
+      const cRes = await fetch("/api/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address }),
+      });
+      const c = await cRes.json();
+      if (c.success) {
+        setMintSuccess((c.tokenIds || []).join(", "));
+        setStatus((prev) => ({
+          ...prev,
+          eligible: true,
+          claimed: true,
+          claimedTx: c.tx,
+          claimedTokenIds: (c.tokenIds || []).join(","),
+        }));
+        alert("Congratulations! You’ve minted your Pixie NFT 🎉");
+      } else {
+        const msg = /already/i.test(c?.error || "")
+          ? "This wallet has already redeemed its NFT."
+          : (c?.error || "Claim failed");
+        alert(msg);
+      }
+    } catch (e) {
+      alert("Claim failed");
+    } finally {
+      setRedeeming(false);
     }
   };
 
@@ -288,8 +302,15 @@ export default function StakingTracker() {
                       Thank you for staking. This wallet has already received a free Pixie via $RPEPE staking.
                     </p>
                   )}
+
+                  {/* Redeem area */}
                   {!status.claimed && status.eligible && (
-                    <p className="term note">Eligible for a free Pixie — minting now…</p>
+                    <div className="mt-3">
+                      <p className="term note mb-2">Eligible for a free Pixie — claim it now.</p>
+                      <button className="btn" disabled={redeeming} onClick={handleRedeem}>
+                        {redeeming ? "Redeeming…" : "Redeem NFT"}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
