@@ -19,52 +19,53 @@ export default function Home() {
     setSparkles(generated);
   }, []);
 
-  const handleMint = async () => {
-    if (!address) return alert("Connect your wallet first.");
+const handleMint = async () => {
+  try {
+    if (!window?.ethereum) return alert("No wallet found. Install MetaMask.");
     setLoading(true);
 
-    try {
-      const { ethereum } = window;
-      const provider = new ethers.providers.Web3Provider(ethereum);
-      const signer = provider.getSigner();
-      const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-      // send AVAX payment
-      const tx = await signer.sendTransaction({
-        to: deployer,
-        value: ethers.utils.parseEther((1.33 * quantity).toFixed(4)),
-      });
-      await tx.wait();
+    // 1) Ask permission to access accounts
+    await provider.send("eth_requestAccounts", []);
 
-      // call API to mint
-      const res = await fetch("/api/mint", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address, quantity, paymentMethod: "avax" }),
-      });
-
-      let data;
-      try {
-        data = await res.json();
-      } catch (err) {
-        console.error("Failed to parse JSON response:", err);
-        alert("Transaction may have succeeded, but the response could not be read. Please check your wallet or try again.");
-        setLoading(false);
-        return;
-      }
-
-      if (data.success) {
-        window.location.href = `/success?tokenIds=${data.tokenIds.join(",")}`;
-      } else {
-        alert("Mint failed: " + data.error);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Transaction failed: " + err.message);
+    // 2) Ensure Avalanche C-Chain
+    const net = await provider.getNetwork();
+    if (Number(net.chainId) !== 43114) {
+      await provider.send("wallet_switchEthereumChain", [{ chainId: "0xa86a" }]); // 43114 hex
     }
 
+    // 3) Use signer AFTER permission
+    const signer = provider.getSigner();
+
+    // 4) Send AVAX safely (no float math)
+    const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
+    const priceWei = ethers.utils.parseUnits("1.33", 18);   // 1.33 AVAX
+    const valueWei = priceWei.mul(ethers.BigNumber.from(String(quantity)));
+
+    const payTx = await signer.sendTransaction({ to: deployer, value: valueWei });
+    await payTx.wait();
+
+    // 5) Call your API to adminMint on backend
+    const res = await fetch("/api/mint", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: await signer.getAddress(), quantity, paymentMethod: "avax" }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (data?.success) {
+      window.location.href = `/success?tokenIds=${data.tokenIds.join(",")}`;
+    } else {
+      throw new Error(data?.error || "Mint failed on server");
+    }
+  } catch (err) {
+    console.error(err);
+    alert(`Transaction failed: ${err.message || err}`);
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   return (
     <main
