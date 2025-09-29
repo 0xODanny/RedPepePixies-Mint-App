@@ -43,7 +43,7 @@ export default function Home() {
     const deployer = process.env.NEXT_PUBLIC_DEPLOYER_WALLET;
     if (!deployer) throw new Error("Missing NEXT_PUBLIC_DEPLOYER_WALLET");
 
-    const priceWei  = ethers.utils.parseUnits("0.67", 18);
+    const priceWei  = ethers.utils.parseUnits("1.33", 18);
     const totalWei  = priceWei.mul(ethers.BigNumber.from(String(quantity)));
 
     // Optional but helpful:
@@ -167,7 +167,7 @@ export default function Home() {
         </div>
 
         <p style={{ margin: "1rem 0" }}>
-          Each Pixie costs (LIMITED TIME!) <strong>0.67 AVAX</strong>
+          Each Pixie costs <strong>1.33 AVAX</strong>
         </p>
 
         <div style={{ marginBottom: "1rem" }}>
