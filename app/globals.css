@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 3.1%;
+  --foreground: 0 0% 98%;
+  --border: 0 0% 14%;
+  --input: 0 0% 14%;
+  --ring: 358 80% 56%;
+  --radius: 0.5rem;
+
+  /* Custom brand colors */
+  --rpepe-red: #E8353A;
+  --rpepe-dark: #080808;
+  --rpepe-green: #00FF41;
+  --rpepe-card: #111111;
+  --rpepe-border: #222222;
+
+  /* Font alias — set by layout via next/font/google */
+  --font-pixel: var(--font-vt323);
+}
+
+* {
+  border-color: hsl(var(--border));
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--rpepe-dark);
+  color: hsl(var(--foreground));
+}
+
+/* Marquee animation */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+/* Pixel shimmer for NFT card */
+@keyframes pixel-pulse {
+  0%, 100% { box-shadow: 0 0 12px var(--rpepe-red), 0 0 24px rgba(232,53,58,0.3); }
+  50%       { box-shadow: 0 0 20px var(--rpepe-red), 0 0 40px rgba(232,53,58,0.5); }
+}
+
+.pixel-glow {
+  animation: pixel-pulse 2.5s ease-in-out infinite;
+}
+
+/* Green terminal glow for staking */
+@keyframes green-pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--rpepe-green), 0 0 16px rgba(0,255,65,0.2); }
+  50%       { box-shadow: 0 0 16px var(--rpepe-green), 0 0 32px rgba(0,255,65,0.4); }
+}
+
+.green-glow {
+  animation: green-pulse 2s ease-in-out infinite;
+}
+
+/* Scanline overlay for staking page */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Blink cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+}
