@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAddress, ConnectWallet } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 
-const CONTRACT_ADDRESS = "0x694207A9f708355Ee3119F11E55bc5c0B1845Ba2";
+const CONTRACT_ADDRESS = "0xd4aabf8e83a37cabfdc584d11f589b03a78cfe76";
 
 const TICKER_TEXT =
   "RED PEPE PIXIES • MINT ON AVALANCHE • 1.33 AVAX EACH • EARN MORE BY STAKING $RPEPE • OG NFT SINCE 2023 • HOLD. STAKE. EARN. • RED PEPE PIXIES • MINT ON AVALANCHE • 1.33 AVAX EACH • EARN MORE BY STAKING $RPEPE • OG NFT SINCE 2023 • HOLD. STAKE. EARN. • ";
@@ -152,7 +152,7 @@ export default function Home() {
             <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto lg:mx-0">
               The OG NFT collection of the Red Pepe swamp. Mint a Pixie, stake
               your <strong className="text-white">$RPEPE</strong>, and earn more
-              for free — no wallet lockup required.
+              for free, no wallet lockup required.
             </p>
 
             {/* Stats row */}
@@ -201,7 +201,7 @@ export default function Home() {
                 style={{ border: "1px solid rgba(232,53,58,0.5)", color: "var(--rpepe-red)" }}
                 className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded font-bold text-base hover:bg-red-950 transition-colors"
               >
-                🎮 STAKE TO EARN
+                STAKE TO EARN
               </Link>
             </div>
           </div>
@@ -324,8 +324,11 @@ export default function Home() {
           {/* Pepe character */}
           <div className="flex-shrink-0 relative">
             <img
-              src="https://www.redpepe.meme/red_pepe_chibi_style.png"
-              alt="Red Pepe holding diamond hands"
+              src="/red_pepe_mini_nft.png"
+              alt="Red Pepe mini NFT"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "https://www.redpepe.meme/red_pepe_chibi_style.png";
+              }}
               className="w-64 h-auto object-contain drop-shadow-2xl"
             />
           </div>
@@ -343,21 +346,24 @@ export default function Home() {
               <span style={{ color: "var(--rpepe-red)" }}>NFT</span>
             </h2>
             <p className="text-gray-400 text-lg mb-10 max-w-xl">
-              Red Pepe Pixies are the official NFT collection of the $RPEPE
-              ecosystem on Avalanche. Each Pixie is a pixel-art frog with a
-              unique look — and every single one earns you more through
-              self-custody staking.
+              Red Pepe Pixies are the official NFT collection of the $RPEPE ecosystem on Avalanche.
+              Each Pixie is a pixel-art masterpiece using the designs of Jose Betancor, the team&apos;s
+              very own graphic designer. Every single NFT has utility beyond its unique characteristics.
+              <br />
+              Mint a Pixie while they last, buy them on Opensea, or stake $rpepe to earn (while mint supply last).
+              <br />
+              Don&apos;t forget, you will need a Pixie in the Arcade.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 {
-                  title: "Pixel-Perfect Frogs",
+                  title: "Pixel-Perfect Pepe",
                   desc: "Hand-crafted pixel art. Each Pixie is unique, rare, and unmistakably Red Pepe.",
                 },
                 {
                   title: "Earn by Holding",
-                  desc: "Stack $RPEPE, hold Pixies, and the staking system sends you more NFTs — no lockup.",
+                  desc: "Stack $RPEPE, hold Pixies, and the staking system sends you more NFTs, no lockup, no nonsense. 100% self-custody",
                 },
                 {
                   title: "Avalanche Native",
@@ -402,6 +408,11 @@ export default function Home() {
             PIXIE<span style={{ color: "var(--rpepe-red)" }}>NOMICS</span>
           </h2>
 
+          <div className="text-center mb-10">
+            <p className="text-white text-xl font-bold">1,690 Total Supply</p>
+            <p className="text-gray-500 text-sm mt-2">6x 1:1, 69x Team Edition, 1615x Original</p>
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             {[
               { label: "Mint Price", value: "1.33 AVAX", sub: "Per Pixie" },
@@ -431,7 +442,7 @@ export default function Home() {
             style={{ backgroundColor: "var(--rpepe-card)", border: "1px solid var(--rpepe-border)" }}
             className="max-w-2xl mx-auto rounded-2xl p-6 text-center"
           >
-            <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">$RPEPE Contract Address</p>
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">Pixies Contract Address</p>
             <div className="flex items-center gap-3 justify-center flex-wrap">
               <code className="text-sm text-gray-300 break-all">{CONTRACT_ADDRESS}</code>
               <button
@@ -443,7 +454,7 @@ export default function Home() {
               </button>
             </div>
             <a
-              href="https://snowtrace.io/address/0x694207A9f708355Ee3119F11E55bc5c0B1845Ba2"
+              href="https://snowtrace.io/address/0xd4aabf8e83a37cabfdc584d11f589b03a78cfe76"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
@@ -547,9 +558,9 @@ export default function Home() {
                 <span style={{ color: "var(--rpepe-red)" }}>MORE PIXIES</span>
               </h2>
               <p className="text-gray-400 text-lg mb-8 max-w-md">
-                Just hold <strong className="text-white">$RPEPE</strong> in your
-                wallet and register. Earn points every day — hit the threshold
-                and receive a free Pixie NFT. No lockup. Self-custody.
+                Just hold <strong className="text-white">$RPEPE</strong> in your wallet and register.
+                Earn points every day, hit the threshold and receive a free Pixie NFT at the end.
+                No lockup. No nonsense. 100% self-custody.
               </p>
               <Link
                 href="/staking"
