@@ -305,7 +305,8 @@ export default function StakingPage() {
         </h1>
         <p className="text-gray-500 text-lg max-w-xl mx-auto">
           Keep your <strong className="text-white">$RPEPE</strong> in your own wallet.
-          Register for tracking. Earn points passively. Hit the threshold — get a free Pixie NFT.
+          Register for tracking. Earn points passively. Hit the threshold, get a free Pixie NFT.
+          Existing Pixies in same wallet earn bonus.
         </p>
       </div>
 
@@ -581,25 +582,27 @@ export default function StakingPage() {
             SYSTEM
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
               {
                 step: "01",
                 title: "HOLD $RPEPE",
-                desc: "Keep $RPEPE tokens in your wallet. The more you hold, the more points you earn per day — up to the daily cap.",
-                icon: "💰",
+                desc: "Keep $RPEPE tokens in your wallet. The more you hold, the more points you earn per day, up to the daily cap.",
               },
               {
                 step: "02",
                 title: "REGISTER WALLET",
                 desc: "Register your wallet address on this page. This activates daily point tracking without moving your tokens.",
-                icon: "📋",
               },
               {
                 step: "03",
                 title: "EARN FREE PIXIES",
                 desc: "Once you hit the threshold, a free Pixie NFT is sent to your wallet. Keep holding and earn another one.",
-                icon: "🐸",
+              },
+              {
+                step: "04",
+                title: "NFTs Multiply",
+                desc: "If you have other Pixie(s) in the same wallet, those will earn you bonus points, on top of the daily maximum. The more you have, the quicker you earn you Pixie.",
               },
             ].map((step) => (
               <div
@@ -618,7 +621,6 @@ export default function StakingPage() {
                 >
                   {step.step}
                 </div>
-                <div className="text-2xl mb-3">{step.icon}</div>
                 <h3 style={{ fontFamily: "var(--font-pixel)", color: "var(--rpepe-green)" }} className="text-base mb-3">
                   {step.title}
                 </h3>
