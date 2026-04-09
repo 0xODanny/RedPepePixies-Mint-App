@@ -49,6 +49,8 @@ export default function StakingPage() {
 
   // ── Fetch on-chain snapshot ─────────────────────────────
   useEffect(() => {
+    if (!address) return;
+
     const run = async () => {
       if (!address || !rpc || !rpepeTokenAddress || !nftContractAddr) return;
       const provider = new ethers.providers.JsonRpcProvider(rpc);
@@ -77,10 +79,16 @@ export default function StakingPage() {
       }
     };
     run();
+
+    // Poll while connected so balance/NFT changes are reflected automatically.
+    const id = setInterval(run, 30000);
+    return () => clearInterval(id);
   }, [address]);
 
   // ── Pull server status ──────────────────────────────────
   useEffect(() => {
+    if (!address) return;
+
     const run = async () => {
       if (!address) return;
       try {
@@ -101,6 +109,10 @@ export default function StakingPage() {
       }
     };
     run();
+
+    // Poll status so backend snapshot promotions/resets apply live.
+    const id = setInterval(run, 30000);
+    return () => clearInterval(id);
   }, [address]);
 
   // ── Live accumulator ────────────────────────────────────

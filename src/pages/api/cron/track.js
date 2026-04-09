@@ -73,27 +73,38 @@ export default async function handler(req, res) {
 
       const now = new Date();
       const lastUpdate = u.last_update ? new Date(u.last_update) : null;
-      const hours = lastUpdate ? Math.floor((now - lastUpdate) / (1000 * 60 * 60)) : 1;
+      const elapsedHours = lastUpdate ? (now - lastUpdate) / (1000 * 60 * 60) : 0;
+      const elapsed = Math.max(0, elapsedHours);
 
-      if (hours < 1) continue; // only accrue hourly
+      if (elapsed <= 0) continue;
 
       let pointsR = Number(u.points_rpepe || 0);
       const snap  = Number(u.initial_rpepe || 0);
+      const pixSnap = Number(u.pixie_count || 0);
 
-      if (rpepeBal >= snap) {
+      let nextSnap = snap;
+      let nextPixSnap = pixSnap;
+
+      // Any decrease in either tracked balance resets progress.
+      if (rpepeBal < snap || pixCount < pixSnap) {
+        pointsR = 0;
+        // Start a fresh snapshot from current holdings after reset.
+        nextSnap = rpepeBal;
+        nextPixSnap = pixCount;
+      } else {
         // base from SNAPSHOT, not current bal (self-custody rule)
         const baseUncapped = snap * RATE_PER_RPEPE;
         const baseCapped   = Math.min(baseUncapped, MAX_DAILY_BASE);
 
         // +0.5% per NFT up to 50 (post-cap)
-        const boostFactor  = 1 + NFT_BONUS_PER * Math.min(pixCount, NFT_BONUS_CAP);
+        const boostFactor  = 1 + NFT_BONUS_PER * Math.min(pixSnap, NFT_BONUS_CAP);
         const daily        = baseCapped * boostFactor;
 
-        pointsR += (daily / 24) * hours;          // pro-rate by elapsed hours
+        pointsR += (daily / 24) * elapsed;        // pro-rate by elapsed time
         pointsR  = Math.min(pointsR, RPEPE_TARGET);
-      } else {
-        // Dropping below snapshot resets progress
-        pointsR = 0;
+        // If user added $RPEPE and/or Pixies, promote snapshot so future accrual is faster.
+        nextSnap = Math.max(snap, rpepeBal);
+        nextPixSnap = Math.max(pixSnap, pixCount);
       }
 
       const becameEligible = pointsR >= RPEPE_TARGET;
@@ -103,10 +114,11 @@ export default async function handler(req, res) {
         `UPDATE staking_users SET
            points_rpepe     = $1,
            last_update      = $2,
-           pixie_count      = $3,
-           eligible_for_nft = $4
-         WHERE lower(wallet) = $5`,
-        [pointsR, now.toISOString(), pixCount, becameEligible, wallet]
+           initial_rpepe    = $3,
+           pixie_count      = $4,
+           eligible_for_nft = $5
+         WHERE lower(wallet) = $6`,
+        [pointsR, now.toISOString(), nextSnap, nextPixSnap, becameEligible, wallet]
       );
 
       updated += 1;
