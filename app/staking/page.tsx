@@ -544,9 +544,25 @@ export default function StakingPage() {
               {/* Redeem button */}
               {!status.claimed && status.eligible && (
                 <div className="mt-5">
-                  <p className="text-sm text-gray-400 mb-3">
-                    🎉 You&apos;re eligible for a free Pixie — claim it now!
+                  <p
+                    style={{ fontFamily: "var(--font-pixel)", color: "var(--rpepe-green)" }}
+                    className="text-sm mb-3"
+                  >
+                    You&apos;re eligible for a free Pixie — claim it now!
                   </p>
+                  <style>{`
+                    @keyframes pulse-glow {
+                      0%, 100% {
+                        box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+                      }
+                      50% {
+                        box-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+                      }
+                    }
+                    .pulse-button {
+                      animation: pulse-glow 2s infinite;
+                    }
+                  `}</style>
                   <button
                     onClick={handleRedeem}
                     disabled={redeeming}
@@ -555,7 +571,7 @@ export default function StakingPage() {
                       color: "#000",
                       fontFamily: "var(--font-pixel)",
                     }}
-                    className="px-6 py-3 rounded-lg font-bold text-base hover:opacity-90 transition-opacity disabled:opacity-50"
+                    className="px-6 py-3 rounded-lg font-bold text-base hover:opacity-90 transition-opacity disabled:opacity-50 pulse-button"
                   >
                     {redeeming ? "REDEEMING…" : "REDEEM FREE NFT"}
                   </button>
@@ -694,25 +710,98 @@ export default function StakingPage() {
               transform: "translate(-50%,-50%)",
               background: "#0a1a0a",
               border: "2px solid var(--rpepe-green)",
-              padding: "2rem",
+              padding: "2.5rem",
               zIndex: 9999,
               textAlign: "center",
               fontFamily: "var(--font-pixel)",
               color: "var(--rpepe-green)",
               width: "92%",
-              maxWidth: "420px",
+              maxWidth: "480px",
               borderRadius: "12px",
+              maxHeight: "90vh",
+              overflowY: "auto",
             }}
           >
-            <p className="text-2xl mb-3">🎉 CONGRATULATIONS!</p>
-            <p className="text-base mb-2">Thank you for hodling $RPEPE!</p>
-            <p className="text-sm mb-5">
-              Red Pepe Pixie #{mintSuccess} has been minted to your wallet!
+            {/* NFT Title */}
+            <p style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.05em" }} className="text-3xl mb-4">
+              CONGRATULATIONS
             </p>
+
+            {/* NFT Number Display */}
+            <div
+              style={{
+                backgroundColor: "rgba(0,255,65,0.08)",
+                border: "1px solid rgba(0,255,65,0.3)",
+              }}
+              className="rounded-lg p-6 mb-5"
+            >
+              <p style={{ fontFamily: "var(--font-pixel)", color: "rgba(0,255,65,0.6)" }} className="text-xs mb-3">
+                RED PEPE PIXIE
+              </p>
+              <p style={{ fontFamily: "var(--font-pixel)" }} className="text-4xl font-bold">
+                #{mintSuccess}
+              </p>
+            </div>
+
+            {/* NFT Description */}
+            <p className="text-sm text-gray-400 mb-6">
+              Thank you for holding $RPEPE! Your Pixie has been minted to your wallet.
+            </p>
+
+            {/* Share Section */}
+            <div
+              style={{
+                backgroundColor: "rgba(0,255,65,0.04)",
+                border: "1px solid rgba(0,255,65,0.2)",
+              }}
+              className="rounded-lg p-5 mb-6 text-left"
+            >
+              <p style={{ fontFamily: "var(--font-pixel)", color: "rgba(0,255,65,0.7)" }} className="text-xs mb-3">
+                SHARE ON X (TWITTER)
+              </p>
+              <div
+                style={{
+                  backgroundColor: "#000",
+                  border: "1px solid rgba(0,255,65,0.15)",
+                  color: "#fff",
+                  fontFamily: "var(--font-pixel)",
+                  fontSize: "12px",
+                  lineHeight: "1.6",
+                }}
+                className="rounded p-3 mb-3 text-center whitespace-pre-wrap"
+              >
+                {`Lookie here!
+Self-custody staked $rpepe and just minted my very own Pixie!
+Head to http://redpepemint.xyz/staking and stake as well for a free Pixie!`}
+              </div>
+              <button
+                onClick={() => {
+                  const text = `Lookie here!\nSelf-custody staked $rpepe and just minted my very own Pixie!\nHead to http://redpepemint.xyz/staking and stake as well for a free Pixie!`;
+                  navigator.clipboard.writeText(text);
+                  alert("Text copied to clipboard!");
+                }}
+                style={{
+                  backgroundColor: "rgba(0,255,65,0.2)",
+                  border: "1px solid rgba(0,255,65,0.4)",
+                  color: "var(--rpepe-green)",
+                  fontFamily: "var(--font-pixel)",
+                }}
+                className="w-full px-4 py-2 rounded text-xs font-bold hover:bg-green-900 transition-colors"
+              >
+                COPY FOR X
+              </button>
+            </div>
+
+            {/* Close button */}
             <button
               onClick={() => setMintSuccess(null)}
-              style={{ backgroundColor: "var(--rpepe-green)", color: "#000", fontFamily: "var(--font-pixel)" }}
-              className="px-6 py-2 rounded font-bold hover:opacity-90 transition-opacity"
+              style={{
+                backgroundColor: "var(--rpepe-green)",
+                color: "#000",
+                fontFamily: "var(--font-pixel)",
+                width: "100%",
+              }}
+              className="px-6 py-3 rounded font-bold hover:opacity-90 transition-opacity"
             >
               CLOSE
             </button>
