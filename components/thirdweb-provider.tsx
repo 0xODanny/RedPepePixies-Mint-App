@@ -10,16 +10,7 @@ import {
   coreWallet,
   rabbyWallet,
 } from "@thirdweb-dev/react";
-
-const activeChain = {
-  chainId: 43114,
-  rpc: ["https://api.avax.network/ext/bc/C/rpc"],
-  nativeCurrency: { name: "Avalanche", symbol: "AVAX", decimals: 18 },
-  shortName: "avax",
-  slug: "avalanche",
-  name: "Avalanche",
-  testnet: false,
-};
+import { Avalanche } from "@thirdweb-dev/chains";
 
 // "Other Wallets" — opens the official WalletConnect Explorer modal.
 // That modal shows a searchable list of 500+ wallets with deep-link buttons,
@@ -46,7 +37,7 @@ export default function ThirdwebProvider({
   return (
     <TWProvider
       clientId={process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID}
-      activeChain={activeChain}
+      activeChain={Avalanche}
       supportedWallets={[
         metamaskWallet(),
         coreWallet(),
