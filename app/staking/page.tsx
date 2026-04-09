@@ -332,11 +332,13 @@ export default function StakingPage() {
               style={{ backgroundColor: "#0a0a0a", border: "1px solid #111" }}
               className="rounded-3xl p-12"
             >
-              <div
-                style={{ fontFamily: "var(--font-pixel)", color: "var(--rpepe-green)" }}
-                className="text-4xl mb-6"
-              >
-                🐸
+              <div className="flex justify-center mb-6">
+                <img
+                  src="/red_pepe_mini_nft.png"
+                  alt="Red Pepe Pixie"
+                  className="w-16 h-16 object-contain"
+                  style={{ imageRendering: "pixelated" }}
+                />
               </div>
               <p
                 style={{ fontFamily: "var(--font-pixel)", color: "var(--rpepe-green)" }}
