@@ -22,7 +22,12 @@ const PIXIES_ADDRESS =
   process.env.PIXIES_CONTRACT_ADDRESS ||
   process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS;
 
-const provider = AVAX_RPC ? new ethers.providers.JsonRpcProvider(AVAX_RPC) : null;
+const provider = AVAX_RPC
+  ? new ethers.providers.StaticJsonRpcProvider(AVAX_RPC, {
+      chainId: 43114,
+      name: "avalanche",
+    })
+  : null;
 const rpepe = provider && RPEPE_ADDRESS ? new ethers.Contract(RPEPE_ADDRESS, erc20Abi, provider) : null;
 const pixies = provider && PIXIES_ADDRESS ? new ethers.Contract(PIXIES_ADDRESS, pixiesAbi, provider) : null;
 

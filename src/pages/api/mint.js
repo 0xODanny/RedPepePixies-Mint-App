@@ -1,6 +1,12 @@
 import { ethers } from "ethers";
 import pixiesAbi from "../../../abi/pixies.json";
 
+const AVAX_RPC = process.env.AVAX_RPC || process.env.NEXT_PUBLIC_AVAX_RPC;
+const CONTRACT_ADDRESS =
+  process.env.CONTRACT_ADDRESS ||
+  process.env.PIXIES_CONTRACT_ADDRESS ||
+  process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS;
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
@@ -17,16 +23,19 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (!AVAX_RPC || !CONTRACT_ADDRESS || !process.env.PRIVATE_KEY) {
+      return res.status(500).json({ success: false, error: "Server misconfigured: minting credentials missing" });
+    }
+
     // ✅ Initialize provider and wallet
-    const provider = new ethers.providers.JsonRpcProvider({
-      url: process.env.AVAX_RPC,
+    const provider = new ethers.providers.StaticJsonRpcProvider(AVAX_RPC, {
       chainId: 43114,
       name: "avalanche",
     });
 
     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
     const contract = new ethers.Contract(
-      process.env.CONTRACT_ADDRESS,
+      CONTRACT_ADDRESS,
       pixiesAbi,
       wallet
     );

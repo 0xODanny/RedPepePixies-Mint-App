@@ -4,6 +4,11 @@ import pg from "pg";
 import pixiesAbi from "../../../abi/pixies.json";
 
 const db = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const AVAX_RPC = process.env.AVAX_RPC || process.env.NEXT_PUBLIC_AVAX_RPC;
+const CONTRACT_ADDRESS =
+  process.env.CONTRACT_ADDRESS ||
+  process.env.PIXIES_CONTRACT_ADDRESS ||
+  process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ success: false, error: "Method not allowed" });
@@ -33,13 +38,16 @@ export default async function handler(req, res) {
     }
 
     // 2) Mint 1 token (adminMint) to the wallet
-    const provider = new ethers.providers.JsonRpcProvider({
-      url: process.env.AVAX_RPC,
+    if (!AVAX_RPC || !CONTRACT_ADDRESS || !process.env.PRIVATE_KEY) {
+      return res.status(500).json({ success: false, error: "Server misconfigured: minting credentials missing" });
+    }
+
+    const provider = new ethers.providers.StaticJsonRpcProvider(AVAX_RPC, {
       chainId: 43114,
       name: "avalanche",
     });
     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-    const nft = new ethers.Contract(process.env.CONTRACT_ADDRESS, pixiesAbi, wallet);
+    const nft = new ethers.Contract(CONTRACT_ADDRESS, pixiesAbi, wallet);
 
     const tx = await nft.adminMint(address, 1);
     const receipt = await tx.wait();

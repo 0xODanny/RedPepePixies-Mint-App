@@ -4,15 +4,16 @@ import pg from "pg";
 import erc20Abi from "../../../abi/redpepe.json";
 import pixiesAbi from "../../../abi/pixies.json";
 
-const {
-  AVAX_RPC,
-  PRIVATE_KEY, // not strictly needed for reads, but kept for parity
-  DATABASE_URL,
-  RPEPE_TOKEN_ADDRESS,
-  PIXIES_CONTRACT_ADDRESS,
-} = process.env;
+const DATABASE_URL = process.env.DATABASE_URL;
+const AVAX_RPC = process.env.AVAX_RPC || process.env.NEXT_PUBLIC_AVAX_RPC;
+const RPEPE_TOKEN_ADDRESS =
+  process.env.RPEPE_TOKEN_CONTRACT_ADDRESS ||
+  process.env.RPEPE_TOKEN_ADDRESS ||
+  process.env.NEXT_PUBLIC_RPEPE_TOKEN_ADDRESS;
+const PIXIES_CONTRACT_ADDRESS =
+  process.env.PIXIES_CONTRACT_ADDRESS ||
+  process.env.NEXT_PUBLIC_PIXIES_CONTRACT_ADDRESS;
 
-const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC);
 const db = new pg.Pool({
   connectionString: DATABASE_URL,
   ssl: { rejectUnauthorized: false }, // <- important for Vercel + many hosted Postgres
@@ -28,10 +29,17 @@ export default async function handler(req, res) {
     if (!address || !ethers.utils.isAddress(address)) {
       return res.status(400).json({ success: false, error: "Invalid wallet address" });
     }
+    if (!AVAX_RPC) {
+      return res.status(500).json({ success: false, error: "Server misconfigured: AVAX RPC missing" });
+    }
     if (!RPEPE_TOKEN_ADDRESS || !PIXIES_CONTRACT_ADDRESS) {
       return res.status(500).json({ success: false, error: "Server misconfigured: token/NFT address missing" });
     }
 
+    const provider = new ethers.providers.StaticJsonRpcProvider(AVAX_RPC, {
+      chainId: 43114,
+      name: "avalanche",
+    });
     const rpepe = new ethers.Contract(RPEPE_TOKEN_ADDRESS, erc20Abi, provider);
     const nft = new ethers.Contract(PIXIES_CONTRACT_ADDRESS, pixiesAbi, provider);
 

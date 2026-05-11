@@ -28,7 +28,10 @@ const RPEPE_TARGET    = 6942;
 
 // DB + chain clients (created once per lambda cold start)
 const db = new pg.Pool({ connectionString: DATABASE_URL, max: 1 });
-const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC);
+const provider = new ethers.providers.StaticJsonRpcProvider(AVAX_RPC, {
+  chainId: 43114,
+  name: "avalanche",
+});
 const rpepe   = new ethers.Contract(RPEPE_ADDRESS, erc20Abi, provider);
 const pixies  = new ethers.Contract(PIXIES_ADDRESS, pixiesAbi, provider);
 
