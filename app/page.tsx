@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAddress, ConnectWallet } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
+import CampaignPreview from "../components/campaign-preview";
 
 const CONTRACT_ADDRESS = "0xd4aabf8e83a37cabfdc584d11f589b03a78cfe76";
 
@@ -107,6 +108,9 @@ export default function Home() {
             </Link>
             <Link href="/staking" className="text-sm text-gray-400 hover:text-white transition-colors">
               Staking
+            </Link>
+            <Link href="#campaign" className="text-sm text-gray-400 hover:text-white transition-colors">
+              Campaign
             </Link>
             <a
               href="https://t.me/redpepeavax1"
@@ -317,6 +321,8 @@ export default function Home() {
           </span>
         </div>
       </div>
+
+      <CampaignPreview address={address} />
 
       {/* ── ABOUT ────────────────────────────────────────────── */}
       <section id="about" className="max-w-7xl mx-auto px-6 py-20">
