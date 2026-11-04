@@ -5,8 +5,9 @@ import { useState } from "react";
 import { useAddress, ConnectWallet } from "@thirdweb-dev/react";
 import { ethers } from "ethers";
 import CampaignPreview from "../components/campaign-preview";
+import { EXPECTED_PIXIES_CONTRACT } from "../lib/campaign/contracts.mjs";
 
-const CONTRACT_ADDRESS = "0xd4aabf8e83a37cabfdc584d11f589b03a78cfe76";
+const CONTRACT_ADDRESS = EXPECTED_PIXIES_CONTRACT;
 
 const TICKER_TEXT =
   "RED PEPE PIXIES • MINT ON AVALANCHE • 1.33 AVAX EACH • EARN MORE BY STAKING $RPEPE • OG NFT SINCE 2023 • HOLD. STAKE. EARN. • RED PEPE PIXIES • MINT ON AVALANCHE • 1.33 AVAX EACH • EARN MORE BY STAKING $RPEPE • OG NFT SINCE 2023 • HOLD. STAKE. EARN. • ";
