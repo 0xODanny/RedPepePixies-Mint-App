@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { EXPECTED_PIXIES_CONTRACT, MINT_URL, RPEPE_TOKEN } from "../lib/campaign/contracts.mjs";
-import { ESIM_REDEMPTION_COPY, finaleTravelPrizes, seasonCommitment, weeklyPrizeRows } from "../lib/campaign/lineup.mjs";
-import { DRAW_PLAN } from "../lib/campaign/draw.mjs";
+import { useAddress } from "@thirdweb-dev/react";
+import { ESIM_REDEMPTION_COPY, finaleTravelPrizes, weeklyPrizeRows } from "../lib/campaign/lineup.mjs";
 import { enabledGames } from "../lib/campaign/runs.mjs";
-import { campaignDraws, formatDraw, previewCountdown } from "../lib/campaign/schedule.mjs";
+import { campaignDraws, formatDraw } from "../lib/campaign/schedule.mjs";
 import { compareStandings } from "../lib/campaign/scoring.mjs";
 import { sampleStandings } from "../lib/campaign/sampleBoard.mjs";
 
@@ -17,15 +16,6 @@ type SortKey =
   | "rpepeHeld"
   | "gamepass"
   | "entryStatus";
-
-type StatusPayload = {
-  contract?: {
-    chainId: number;
-    serverContract: string;
-    expectedContract: string;
-    matchesExpected: boolean;
-  };
-};
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "weeklyPower", label: "Weekly power" },
@@ -41,31 +31,33 @@ function shortWallet(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
+function formatReadableAmount(exact: string) {
+  const [whole, fraction = ""] = exact.split(".");
+  const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const shown = fraction.slice(0, 2).replace(/0+$/, "");
+  return shown ? `${withCommas}.${shown}` : withCommas;
+}
+
+function formatPower(value: number) {
+  return Number.isInteger(value) ? value.toLocaleString("en-US") : value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
+
 function cardStyle() {
   return { backgroundColor: "var(--rpepe-card)", border: "1px solid var(--rpepe-border)" };
 }
 
-export default function CampaignPreview({ address }: { address?: string }) {
+export default function CampaignPreview() {
+  const address = useAddress();
   const draws = campaignDraws();
-  const commitment = seasonCommitment();
   const prizes = weeklyPrizeRows();
   const travel = finaleTravelPrizes();
   const games = enabledGames();
   const board = sampleStandings();
   const [sortKey, setSortKey] = useState<SortKey>("weeklyPower");
   const [localZone, setLocalZone] = useState<string | null>(null);
-  const [now, setNow] = useState<number | null>(null);
-  const [status, setStatus] = useState<StatusPayload | null>(null);
 
   useEffect(() => {
     setLocalZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    setNow(Date.now());
-    const timer = window.setInterval(() => setNow(Date.now()), 30000);
-    fetch("/api/campaign/status")
-      .then((response) => response.json())
-      .then((payload) => setStatus(payload))
-      .catch(() => setStatus(null));
-    return () => window.clearInterval(timer);
   }, []);
 
   const rows = useMemo(() => {
@@ -92,133 +84,112 @@ export default function CampaignPreview({ address }: { address?: string }) {
     return copy;
   }, [board.rows, sortKey]);
 
-  const contract = status?.contract;
-  const countdown = now == null ? null : previewCountdown(draws[0].cutoff, new Date(now));
-
   return (
-    <section id="campaign" data-preview-mode="true" className="max-w-7xl mx-auto px-6 py-20">
-      <p style={{ color: "var(--rpepe-red)" }} className="text-center text-sm font-semibold uppercase tracking-widest mb-3">
-        Four-week preview
+    <main className="max-w-5xl mx-auto px-6 py-12 md:py-16">
+      <p style={{ color: "var(--rpepe-red)" }} className="text-sm font-semibold uppercase tracking-widest mb-3">
+        Free Sunday draw
       </p>
-      <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-center text-5xl md:text-6xl mb-4">
-        SUNDAY PRIZE <span style={{ color: "var(--rpepe-red)" }}>LINEUP</span>
-      </h2>
-      <p className="text-center text-gray-400 max-w-2xl mx-auto mb-4">
-        Free weekly draw on {MINT_URL}. Every eligible entry has the same chance. Power Board position, scores, Pixies, $RPEPE, and GamePass do not buy extra entries.
+      <h1 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-5xl md:text-6xl leading-none mb-4">
+        Red Pepe Pixies <span style={{ color: "var(--rpepe-red)" }}>×</span> Pepinho Games
+      </h1>
+      <p className="text-gray-300 text-lg max-w-2xl mb-6">
+        Enter once each week for a free Sunday draw. Every eligible entrant has the same chance. Buying Pixies, holding tokens, having GamePass, and placing on the Power Board do not change the draw.
       </p>
-      <p className="text-center text-xs text-gray-500 max-w-2xl mx-auto mb-8">
-        {DRAW_PLAN.rulesStatus} Dates and the countdown stay in preview until that date is confirmed.
-      </p>
+      <a
+        href="https://www.pepinho.games"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ backgroundColor: "var(--rpepe-red)" }}
+        className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-white hover:opacity-90 transition-opacity"
+      >
+        Pepinho Games
+      </a>
 
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
-        <a href="https://www.pepinho.games" target="_blank" rel="noopener noreferrer" style={{ backgroundColor: "var(--rpepe-red)" }} className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-white hover:opacity-90 transition-opacity">
-          Pepinho Games
-        </a>
-        <a href={MINT_URL} className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-white" style={{ border: "1px solid rgba(232,53,58,0.5)", color: "var(--rpepe-red)" }}>
-          redpepemint.xyz
-        </a>
-      </div>
-
-      <div style={cardStyle()} className="rounded-2xl p-6 mb-8">
-        <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">Season commitment</p>
-        <p className="text-white text-lg font-semibold">{commitment.avax} AVAX and {commitment.passes} one-month passes</p>
-        <p className="text-sm text-gray-400 mt-2">
-          {commitment.gamepassCount} GamePass and {commitment.gamepassPlusCount} GamePass+ months. GamePass retail value is separate from the cash prize budget.
-        </p>
-        <p className="text-sm text-gray-400 mt-2">
-          Finale model: {commitment.modeled}. The $320 figure is an internal planning target with operating headroom, not the prize total. No eSIM provider quote is loaded, so that target is not reconciled yet.
-        </p>
-        <p className="text-sm text-gray-500 mt-3" data-contract-status={contract ? String(contract.matchesExpected) : "loading"}>
-          Chain {contract?.chainId ?? 43114}. This deployment mints{" "}
-          <span className="text-gray-300 break-all">{contract?.serverContract || "…"}</span>. Expected Pixies contract{" "}
-          <span className="text-gray-300 break-all">{EXPECTED_PIXIES_CONTRACT}</span>.
-          {contract ? (contract.matchesExpected ? " Contract matches." : " Contract does not match. Do not test a mint here.") : " Checking the server contract."}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        {draws.map((draw) => (
-          <article key={draw.week} style={cardStyle()} className="rounded-2xl p-6" data-draw-week={draw.week}>
-            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Proposed Sunday draw</p>
-            <h3 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-3xl mb-2">
-              Week {draw.week}
-              {draw.week === 4 ? <span style={{ color: "var(--rpepe-red)" }}> Finale</span> : null}
-            </h3>
-            <p className="text-sm text-white mb-1" data-draw-pacific={draw.week}>{formatDraw(draw.cutoff, "America/Los_Angeles")}</p>
-            <p className="text-sm text-gray-400 mb-4" data-draw-local={draw.week}>
-              {localZone ? `Your time: ${formatDraw(draw.cutoff, localZone)}` : "Your local time appears after this page loads."}
-            </p>
-            <ul className="space-y-2">
-              {prizes.map((prize) => (
-                <li key={prize.place} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="text-gray-500">{prize.place}</span>
-                  <span className="text-white font-semibold text-right">{prize.award}</span>
-                </li>
-              ))}
-            </ul>
-            {draw.week === 4 ? (
-              <div style={{ borderTop: "1px solid var(--rpepe-border)" }} className="mt-4 pt-4 space-y-3">
-                <p style={{ color: "var(--rpepe-red)" }} className="text-xs font-semibold uppercase tracking-widest">Travel prizes</p>
-                {travel.map((prize) => (
-                  <div key={prize.award}>
-                    <p className="text-sm text-white font-semibold">{prize.award}</p>
-                    <p className="text-xs text-gray-400 mt-1">{prize.detail}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </article>
-        ))}
-      </div>
-
-      <p className="text-center text-sm text-gray-400 mb-10" data-countdown="preview">
-        {countdown ? `Preview countdown to the proposed first draw: ${countdown.label}. ${countdown.note}` : "Preview countdown loads with your clock."}
-      </p>
-
-      <div style={cardStyle()} className="rounded-2xl p-6 md:p-8 mb-8">
-        <h3 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-4xl mb-3">HOW POWER IS SCORED</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          Base is 100 points for participating, plus mint points. A single transaction of 1, 3, 5, or 10 Pixies earns 1, 5, 10, or 25 points. Any other quantity earns 1 point per Pixie. Confirmed Pixies mints count once. Transfers and secondary purchases do not.
-        </p>
-        <p className="text-sm text-gray-400 mb-4">
-          Each enabled game is ranked on its own. Rank 20 adds 10%, rank 19 adds 11%, and rank 1 adds 29%. Pixies holdings add 0% at zero, 1% for 1–5, 3% for 6–10, 5% for 11–20, 12% for 21–60, and 30% for 61 or more. $RPEPE holdings add 0% at zero, 1% through 250,000, 3% through 500,000, 5% through 1 million, 7% through 1.5 million, and 10% above that. Token decimals set the exact boundaries.
-        </p>
-        <p className="text-sm text-gray-400 mb-4">
-          The percentage bonuses are added together and applied once to base points. Final scores and holdings use the Sunday noon Pacific cutoff. Ties go to the higher base, then the lower wallet address. {RPEPE_TOKEN} is the $RPEPE token.
-        </p>
-        <ul className="space-y-2 text-sm text-gray-300">
-          {games.map((game) => (
-            <li key={game.id}>
-              <a href={game.href} target="_blank" rel="noopener noreferrer" className="text-white font-semibold hover:text-red-400">{game.label}</a>
-              <span className="text-gray-500">. {game.note}</span>
+      <section style={cardStyle()} className="rounded-2xl p-6 mt-10">
+        <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-4xl mb-4">
+          Every Sunday
+        </h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+          {prizes.map((prize) => (
+            <li key={prize.place} className="flex items-baseline justify-between gap-3 text-sm border-b border-neutral-800 pb-2">
+              <span className="text-gray-400">{prize.place}</span>
+              <span className="text-white font-semibold text-right">{prize.award}</span>
             </li>
           ))}
-          <li className="text-gray-500">Telegram stays off until a same-wallet signature is verified. Seed phrases and private keys are never requested.</li>
         </ul>
-      </div>
-
-      <div style={cardStyle()} className="rounded-2xl p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-          <div>
-            <p style={{ color: "var(--rpepe-red)" }} className="text-xs font-semibold uppercase tracking-widest mb-2">Sample data</p>
-            <h3 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-4xl">POWER BOARD</h3>
-          </div>
-          <p className="text-sm text-gray-500 max-w-sm">{board.note}</p>
+        <div className="flex flex-col sm:flex-row gap-3 mt-6">
+          <button type="button" disabled aria-disabled="true" data-campaign-control="entry" style={{ backgroundColor: "#555" }} className="px-6 py-3 rounded-xl font-bold text-white cursor-not-allowed opacity-60">
+            Enter
+          </button>
+          <button type="button" disabled aria-disabled="true" data-campaign-control="payout" style={{ border: "1px solid var(--rpepe-border)", color: "#888" }} className="px-6 py-3 rounded-xl font-bold cursor-not-allowed opacity-60">
+            Claim
+          </button>
         </div>
-        <label className="block text-xs uppercase tracking-widest text-gray-500 mb-4">
-          Sort
-          <select
-            value={sortKey}
-            onChange={(event) => setSortKey(event.target.value as SortKey)}
-            className="mt-2 block w-full sm:w-64 bg-black text-white border border-neutral-700 rounded-lg px-3 py-2"
-          >
-            {SORTS.map((option) => (
-              <option key={option.key} value={option.key}>{option.label}</option>
-            ))}
-          </select>
-        </label>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[760px]">
+        <p className="text-sm text-gray-400 mt-4">Entries and claims aren’t open yet.</p>
+      </section>
+
+      <section className="mt-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-3">
+          <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-3xl">
+            Draw schedule
+          </h2>
+          <p className="text-sm text-gray-400" data-dates-notice="proposed">These dates are proposed.</p>
+        </div>
+        <ol className="space-y-3">
+          {draws.map((draw) => (
+            <li key={draw.week} style={cardStyle()} className="rounded-xl px-4 py-3" data-draw-week={draw.week}>
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                <p className="text-white font-semibold">Week {draw.week}{draw.week === 4 ? " finale" : ""}</p>
+                <p className="text-sm text-white" data-draw-pacific={draw.week}>{formatDraw(draw.cutoff, "America/Los_Angeles")}</p>
+              </div>
+              <p className="text-sm text-gray-400 mt-1" data-draw-local={draw.week}>
+                {localZone ? `Your time: ${formatDraw(draw.cutoff, localZone)}` : "Your local time appears after this page loads."}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section style={cardStyle()} className="rounded-2xl p-6 mt-8">
+        <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-3xl mb-4">
+          Week 4 extras
+        </h2>
+        <div className="space-y-4">
+          {travel.map((prize) => (
+            <div key={prize.award}>
+              <p className="text-white font-semibold">{prize.award}</p>
+              {prize.award.startsWith("One eSIM") ? (
+                <p className="text-sm text-gray-400 mt-1">{ESIM_REDEMPTION_COPY}</p>
+              ) : (
+                <p className="text-sm text-gray-400 mt-1">{prize.detail}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={cardStyle()} className="rounded-2xl p-6 mt-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+          <div>
+            <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-4xl">Power Board</h2>
+            <p className="text-sm text-gray-400 mt-1">Sample standings</p>
+          </div>
+          <label className="text-xs uppercase tracking-widest text-gray-500">
+            Sort
+            <select
+              value={sortKey}
+              onChange={(event) => setSortKey(event.target.value as SortKey)}
+              className="mt-2 block w-full sm:w-56 bg-black text-white border border-neutral-700 rounded-lg px-3 py-2 normal-case tracking-normal text-sm"
+            >
+              {SORTS.map((option) => (
+                <option key={option.key} value={option.key}>{option.label}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-widest text-gray-500">
                 {["Rank", "Wallet", "Weekly power", "All-time", "Last week", "Pixies", "$RPEPE", "GamePass", "Entry"].map((heading) => (
@@ -227,20 +198,15 @@ export default function CampaignPreview({ address }: { address?: string }) {
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderTop: "1px solid var(--rpepe-border)" }}>
-                <td className="py-3 pr-4 text-gray-400">—</td>
-                <td className="py-3 pr-4 text-white">{address ? shortWallet(address) : "Not connected"}</td>
-                <td className="py-3 pr-4 text-gray-500" colSpan={7}>Your wallet is not on the sample board. Connecting does not enter the draw.</td>
-              </tr>
               {rows.map((row) => (
                 <tr key={row.wallet} style={{ borderTop: "1px solid var(--rpepe-border)" }} data-sample-row="true">
                   <td className="py-3 pr-4 text-gray-400">{row.rank}</td>
-                  <td className="py-3 pr-4 text-gray-300">Sample {shortWallet(row.wallet)}</td>
-                  <td className="py-3 pr-4 text-white">{row.weeklyPower}</td>
-                  <td className="py-3 pr-4 text-gray-300">{row.allTimePower}</td>
+                  <td className="py-3 pr-4 text-gray-300">{shortWallet(row.wallet)}</td>
+                  <td className="py-3 pr-4 text-white">{formatPower(row.weeklyPower)}</td>
+                  <td className="py-3 pr-4 text-gray-300">{formatPower(row.allTimePower)}</td>
                   <td className="py-3 pr-4 text-gray-300">{row.lastWeekRank ?? "—"}</td>
-                  <td className="py-3 pr-4 text-gray-300">{row.pixiesHeld}</td>
-                  <td className="py-3 pr-4 text-gray-300">{row.rpepeHeld}</td>
+                  <td className="py-3 pr-4 text-gray-300">{row.pixiesHeld.toLocaleString("en-US")}</td>
+                  <td className="py-3 pr-4 text-gray-300" title={row.rpepeHeld} data-rpepe-exact={row.rpepeRaw}>{formatReadableAmount(row.rpepeHeld)}</td>
                   <td className="py-3 pr-4 text-gray-300">{row.gamepass}</td>
                   <td className="py-3 text-gray-300">{row.entryStatus}</td>
                 </tr>
@@ -248,27 +214,56 @@ export default function CampaignPreview({ address }: { address?: string }) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 mt-6">
-          <button type="button" disabled aria-disabled="true" data-campaign-control="entry" style={{ backgroundColor: "#555" }} className="px-6 py-3 rounded-xl font-bold text-white cursor-not-allowed opacity-60">
-            Enter this week
-          </button>
-          <button type="button" disabled aria-disabled="true" data-campaign-control="payout" style={{ border: "1px solid var(--rpepe-border)", color: "#888" }} className="px-6 py-3 rounded-xl font-bold cursor-not-allowed opacity-60">
-            Claim payout
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 mt-4">Preview only. Entry and payouts are disabled. {ESIM_REDEMPTION_COPY} The provider has not confirmed that six-month window, so fulfillment stays off.</p>
-      </div>
 
-      <div style={cardStyle()} className="rounded-2xl p-6 mt-8">
-        <p style={{ color: "var(--rpepe-red)" }} className="text-xs font-semibold uppercase tracking-widest mb-2">Separate competition</p>
-        <h3 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-3xl mb-2">BALLN FREE THROW</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          $6 weekly competition. Its entry, rules, and prizes stay on Pepinho and are separate from this Pixies draw.
-        </p>
-        <a href="https://www.pepinho.games/basketball" target="_blank" rel="noopener noreferrer" style={{ backgroundColor: "var(--rpepe-red)" }} className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-bold text-white">
-          Balln Free Throw
+        <ol className="md:hidden space-y-3">
+          {rows.map((row) => (
+            <li key={row.wallet} style={{ borderTop: "1px solid var(--rpepe-border)" }} className="pt-3" data-sample-row="true">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-white font-semibold">#{row.rank} {shortWallet(row.wallet)}</p>
+                <p className="text-white">{formatPower(row.weeklyPower)}</p>
+              </div>
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-sm text-gray-400">
+                <div>All-time <span className="text-gray-200">{formatPower(row.allTimePower)}</span></div>
+                <div>Last week <span className="text-gray-200">{row.lastWeekRank ?? "—"}</span></div>
+                <div>Pixies <span className="text-gray-200">{row.pixiesHeld.toLocaleString("en-US")}</span></div>
+                <div>$RPEPE <span className="text-gray-200" title={row.rpepeHeld} data-rpepe-exact={row.rpepeRaw}>{formatReadableAmount(row.rpepeHeld)}</span></div>
+                <div>GamePass <span className="text-gray-200">{row.gamepass}</span></div>
+                <div>Entry <span className="text-gray-200">{row.entryStatus}</span></div>
+              </dl>
+            </li>
+          ))}
+        </ol>
+
+        {address ? <p className="text-sm text-gray-500 mt-4">{shortWallet(address)} is connected. It is not listed in these standings.</p> : null}
+
+        <details className="mt-6">
+          <summary className="cursor-pointer text-white font-semibold">How Power works</summary>
+          <div className="text-sm text-gray-400 mt-3 space-y-3">
+            <p>You start with 100 points for taking part, plus points for confirmed Pixies mints. A single mint of 1, 3, 5, or 10 Pixies earns 1, 5, 10, or 25 points. Any other quantity earns 1 point per Pixie. Each mint counts once. Transfers and later purchases do not.</p>
+            <p>Snake, Red Pepe Rocket, and Frogger are ranked separately. Rank 20 adds 10%, rank 19 adds 11%, and rank 1 adds 29%. Those bonuses are added to the holding bonuses, then applied once to the base points.</p>
+            <p>Pixies add 0% at zero, 1% for 1–5, 3% for 6–10, 5% for 11–20, 12% for 21–60, and 30% for 61 or more. $RPEPE adds 0% at zero, 1% through 250,000, 3% through 500,000, 5% through 1 million, 7% through 1.5 million, and 10% above that.</p>
+            <p>Scores and holdings are taken at Sunday noon Pacific. If weekly power matches, the higher base ranks first, then the lower wallet address.</p>
+            <p>
+              {games.map((game, index) => (
+                <span key={game.id}>
+                  {index > 0 ? " · " : ""}
+                  <a href={game.href} target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-400">{game.label}</a>
+                </span>
+              ))}
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <section style={cardStyle()} className="rounded-2xl p-5 mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-white font-semibold">Balln Free Throw</p>
+          <p className="text-sm text-gray-400 mt-1">A separate $6 weekly competition. Its entry, rules, and prizes are not part of this draw.</p>
+        </div>
+        <a href="https://www.pepinho.games/basketball" target="_blank" rel="noopener noreferrer" style={{ border: "1px solid rgba(232,53,58,0.5)", color: "var(--rpepe-red)" }} className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-bold">
+          Play Free Throw
         </a>
-      </div>
-    </section>
+      </section>
+    </main>
   );
 }

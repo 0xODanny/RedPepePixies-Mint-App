@@ -261,6 +261,9 @@ export default function StakingPage() {
             <span style={{ color: "var(--rpepe-green)" }} className="text-sm font-semibold">
               Staking
             </span>
+            <Link href="/campaign" className="text-sm text-gray-500 hover:text-white transition-colors">
+              Campaign
+            </Link>
             <a
               href="https://t.me/redpepeavax1"
               target="_blank"
@@ -287,6 +290,25 @@ export default function StakingPage() {
           ) : (
             <ConnectWallet />
           )}
+        </div>
+        <div className="md:hidden flex gap-5 overflow-x-auto px-6 pb-3 relative z-10">
+          <Link href="/" className="text-sm text-gray-500 hover:text-white transition-colors whitespace-nowrap">
+            Mint
+          </Link>
+          <span style={{ color: "var(--rpepe-green)" }} className="text-sm font-semibold whitespace-nowrap">
+            Staking
+          </span>
+          <Link href="/campaign" className="text-sm text-gray-500 hover:text-white transition-colors whitespace-nowrap">
+            Campaign
+          </Link>
+          <a
+            href="https://t.me/redpepeavax1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-gray-500 hover:text-white transition-colors whitespace-nowrap"
+          >
+            Community
+          </a>
         </div>
       </nav>
 
