@@ -86,3 +86,43 @@ body {
 .blink {
   animation: blink 1s step-end infinite;
 }
+
+@keyframes pixie-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-8deg); }
+  50% { transform: translate3d(0, -16px, 0) rotate(8deg); }
+}
+
+@keyframes campaign-rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+.campaign-rise {
+  animation: campaign-rise 0.7s ease both;
+}
+
+.pixie-float {
+  animation: pixie-float 5.5s ease-in-out infinite;
+}
+
+.prize-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.prize-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 28px rgba(232, 53, 58, 0.28);
+}
+
+.cheat-sheet summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campaign-rise,
+  .pixie-float,
+  .prize-card {
+    animation: none;
+    transition: none;
+  }
+}

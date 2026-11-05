@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="VPN">
+  <rect width="128" height="128" rx="28" fill="#111"/>
+  <path d="M64 18 108 34v30c0 28-16 46-44 52-28-6-44-24-44-52V34L64 18z" fill="#E8353A"/>
+  <rect x="46" y="58" width="36" height="30" rx="6" fill="#fff"/>
+  <circle cx="64" cy="70" r="6" fill="#E8353A"/>
+  <path d="M64 70v10" stroke="#E8353A" stroke-width="4" stroke-linecap="round"/>
+</svg>

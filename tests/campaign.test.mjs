@@ -8,7 +8,9 @@ import {
   buildEsimAward,
   ESIM_REDEMPTION_COPY,
   redemptionDeadline,
+  finaleTravelPrizes,
   seasonCommitment,
+  weeklyPrizeRows,
 } from "../lib/campaign/lineup.mjs";
 import { campaignDraws, formatDraw, inWindow, zonedTimeToUtc } from "../lib/campaign/schedule.mjs";
 import {
@@ -31,26 +33,33 @@ import { sampleStandings } from "../lib/campaign/sampleBoard.mjs";
 
 const UNIT = 10n ** 18n;
 
-test("season commitment is 24 AVAX and 60 passes, with VPN at $12", () => {
+test("season commitment is 24 AVAX, eight GamePasses, four GamePass+, and 24 VPN months", () => {
   const commitment = seasonCommitment();
   assert.equal(commitment.avax, 24);
-  assert.equal(commitment.passes, 60);
-  assert.equal(commitment.gamepassCount, 40);
-  assert.equal(commitment.gamepassPlusCount, 20);
-  assert.equal(commitment.vpnUsd, 12);
+  assert.equal(commitment.gamepassCount, 8);
+  assert.equal(commitment.gamepassPlusCount, 4);
+  assert.equal(commitment.weeklyEsimCount, 12);
+  assert.equal(commitment.finaleEsimCount, 1);
+  assert.equal(commitment.vpnMonths, 24);
+  assert.equal(commitment.avaxUsd, 200.64);
+  assert.equal(commitment.vpnUsd, 48);
+  assert.equal(commitment.cashUsd, 248.64);
   assert.equal(commitment.esimCostUsd, null);
+  assert.equal(commitment.gamepassRetailUsd, 172);
   assert.equal(commitment.gamepassRetailExcluded, true);
-  assert.equal(commitment.internalPlanningTargetUsd, 320);
+  assert.equal(weeklyPrizeRows().reduce((sum, row) => sum + row.count, 0), 12);
+  assert.equal(finaleTravelPrizes().reduce((sum, row) => sum + row.count, 0), 2);
 });
 
 test("an eSIM quote changes the cash budget and an empty quote stays unresolved", () => {
   const missing = budgetImpact(null);
   assert.equal(missing.quoted, false);
+  assert.equal(missing.cashUsd, 248.64);
+  assert.equal(missing.gamepassRetailUsd, 172);
   const quoted = budgetImpact(40);
-  assert.equal(quoted.cashUsd, 52);
-  assert.equal(quoted.headroomUsd, 268);
-  const over = budgetImpact(400);
-  assert.equal(over.headroomUsd, -92);
+  assert.equal(quoted.quoted, true);
+  assert.equal(quoted.cashUsd, 288.64);
+  assert.equal(quoted.gamepassRetailUsd, 172);
 });
 
 test("eSIM deadline is six calendar months and month ends clamp", () => {
@@ -276,6 +285,8 @@ test("sample board is labeled and the local Balln contract does not match Pixies
   assert.equal(board.source, "sample");
   assert.equal(board.verified, false);
   assert.ok(board.rows.every((row) => row.sample === true));
+  assert.equal(board.rows.filter((row) => row.eligible).length, 2);
+  assert.equal(board.rows.find((row) => !row.eligible).weeklyPower, 0);
   const status = contractStatus({ CONTRACT_ADDRESS: "0x6b2B14002614292F99f9E09B94B59af396EAc27d" });
   assert.equal(status.matchesExpected, false);
   assert.equal(status.expectedContract, EXPECTED_PIXIES_CONTRACT);
