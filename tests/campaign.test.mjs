@@ -18,12 +18,14 @@ import {
   compareStandings,
   mintPointsForQuantity,
   pixiesHoldingPercent,
+  gameBonusPercent,
+  powerTable,
   rankBonusPercent,
   rpepeHoldingPercent,
   weeklyPower,
 } from "../lib/campaign/scoring.mjs";
 import { acceptRun, bestRunsForWeek, gameRankBonuses } from "../lib/campaign/runs.mjs";
-import { claimPrize, freezeEntries, selectWinners } from "../lib/campaign/draw.mjs";
+import { claimPrize, freezeEntries, qualifiesForWeeklyDraw, selectWinners } from "../lib/campaign/draw.mjs";
 import { buildChallengeMessage, verifyChallenge } from "../lib/campaign/wallet.mjs";
 import { sampleStandings } from "../lib/campaign/sampleBoard.mjs";
 
@@ -108,6 +110,9 @@ test("holding and rank boundaries", () => {
   assert.equal(rankBonusPercent(19), 11);
   assert.equal(rankBonusPercent(20), 10);
   assert.equal(rankBonusPercent(21), 0);
+  assert.equal(gameBonusPercent(21), 5);
+  assert.equal(gameBonusPercent(null), 0);
+  assert.equal(gameBonusPercent(1), 29);
   const edges = [0n, 1n, 250000n * UNIT, 250000n * UNIT + 1n, 500000n * UNIT, 500000n * UNIT + 1n, 1000000n * UNIT, 1000000n * UNIT + 1n, 1500000n * UNIT, 1500000n * UNIT + 1n];
   assert.deepEqual(edges.map((value) => rpepeHoldingPercent(value)), [0, 1, 1, 3, 3, 5, 5, 7, 7, 10]);
 });
@@ -149,6 +154,58 @@ test("wrong-wallet, duplicate, and client-submitted runs stay off the board", ()
   assert.equal(rolled.find((run) => run.wallet === "0xabc").score, 80);
   const bonuses = gameRankBonuses(runs, "0xabc", window, [{ id: "snake", enabled: true }]);
   assert.equal(bonuses[0].rank, 2);
+  assert.equal(bonuses[0].percent, 28);
+});
+
+test("a same-week Pixie kept in the buying wallet is required, and a finish outside the top 20 still adds chances", () => {
+  const week = campaignDraws()[0];
+  const bought = {
+    id: "mint-week",
+    kind: "mint",
+    confirmed: true,
+    quantity: 1,
+    buyer: "0xAbc",
+    mintedAt: "2026-11-04T18:00:00.000Z",
+    tokenIds: ["7"],
+  };
+  assert.equal(qualifiesForWeeklyDraw({ wallet: "0xabc", mintEvents: [bought], heldTokenIds: ["7"], window: week }), true);
+  assert.equal(qualifiesForWeeklyDraw({ wallet: "0xabc", mintEvents: [bought], heldTokenIds: [], window: week }), false);
+  assert.equal(qualifiesForWeeklyDraw({ wallet: "0xother", mintEvents: [bought], heldTokenIds: ["7"], window: week }), false);
+  assert.equal(
+    qualifiesForWeeklyDraw({
+      wallet: "0xabc",
+      mintEvents: [{ ...bought, mintedAt: "2026-10-01T18:00:00.000Z" }],
+      heldTokenIds: ["7"],
+      window: week,
+    }),
+    false
+  );
+  assert.equal(
+    qualifiesForWeeklyDraw({
+      wallet: "0xabc",
+      mintEvents: [{ ...bought, kind: "transfer", id: "moved" }],
+      heldTokenIds: ["7"],
+      window: week,
+    }),
+    false
+  );
+  const outside = Array.from({ length: 21 }, (_, index) => ({
+    runId: `run-${index}`,
+    wallet: index === 20 ? "0xabc" : `0x${String(index).padStart(40, "0")}`,
+    game: "snake",
+    score: 100 - index,
+    accepted: true,
+    playedAt: "2026-11-04T20:00:00.000Z",
+    acceptedAt: "2026-11-04T20:01:00.000Z",
+  }));
+  const finish = gameRankBonuses(outside, "0xabc", week, [{ id: "snake", enabled: true }]);
+  assert.equal(finish[0].rank, 21);
+  assert.equal(finish[0].percent, 5);
+  const table = powerTable().map((row) => `${row.action} ${row.chances}`).join(" ");
+  assert.match(table, /Required/);
+  assert.match(table, /5% more chances/);
+  assert.match(table, /29% more chances/);
+  assert.doesNotMatch(table, /free|equal odds/i);
 });
 
 test("all-time power uses finalized weeks only", () => {
@@ -178,6 +235,12 @@ test("draw freeze drops late and duplicate entries, and claims do not double awa
   }
   assert.ok(counts["0xa"] > 1800 && counts["0xa"] < 2200);
   assert.ok(counts["0xb"] > 1800 && counts["0xb"] < 2200);
+  const weighted = frozen.map((entry) => ({ ...entry, chances: entry.wallet === "0xb" ? 300 : 100 }));
+  const weightedCounts = { "0xa": 0, "0xb": 0 };
+  for (let seed = 0; seed < 4000; seed += 1) {
+    weightedCounts[selectWinners(weighted, { seed, count: 1 })[0].wallet] += 1;
+  }
+  assert.ok(weightedCounts["0xb"] > 2800 && weightedCounts["0xb"] < 3200);
   const ledger = new Map();
   const first = claimPrize(ledger, { weekId: "w1", place: 1, wallet: "0xA" });
   const repeat = claimPrize(ledger, { weekId: "w1", place: 1, wallet: "0xa" });

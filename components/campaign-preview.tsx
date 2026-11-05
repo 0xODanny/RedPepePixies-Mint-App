@@ -5,7 +5,7 @@ import { useAddress } from "@thirdweb-dev/react";
 import { ESIM_REDEMPTION_COPY, finaleTravelPrizes, weeklyPrizeRows } from "../lib/campaign/lineup.mjs";
 import { enabledGames } from "../lib/campaign/runs.mjs";
 import { campaignDraws, formatDraw } from "../lib/campaign/schedule.mjs";
-import { compareStandings } from "../lib/campaign/scoring.mjs";
+import { compareStandings, powerTable } from "../lib/campaign/scoring.mjs";
 import { sampleStandings } from "../lib/campaign/sampleBoard.mjs";
 
 type SortKey =
@@ -18,7 +18,7 @@ type SortKey =
   | "entryStatus";
 
 const SORTS: { key: SortKey; label: string }[] = [
-  { key: "weeklyPower", label: "Weekly power" },
+  { key: "weeklyPower", label: "Chances" },
   { key: "allTimePower", label: "All-time power" },
   { key: "lastWeekRank", label: "Last week rank" },
   { key: "pixiesHeld", label: "Pixies held" },
@@ -52,6 +52,7 @@ export default function CampaignPreview() {
   const prizes = weeklyPrizeRows();
   const travel = finaleTravelPrizes();
   const games = enabledGames();
+  const chances = powerTable();
   const board = sampleStandings();
   const [sortKey, setSortKey] = useState<SortKey>("weeklyPower");
   const [localZone, setLocalZone] = useState<string | null>(null);
@@ -87,13 +88,13 @@ export default function CampaignPreview() {
   return (
     <main className="max-w-5xl mx-auto px-6 py-12 md:py-16">
       <p style={{ color: "var(--rpepe-red)" }} className="text-sm font-semibold uppercase tracking-widest mb-3">
-        Free Sunday draw
+        Sunday draw
       </p>
       <h1 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-5xl md:text-6xl leading-none mb-4">
         Red Pepe Pixies <span style={{ color: "var(--rpepe-red)" }}>×</span> Pepinho Games
       </h1>
       <p className="text-gray-300 text-lg max-w-2xl mb-6">
-        Enter once each week for a free Sunday draw. Every eligible entrant has the same chance. Buying Pixies, holding tokens, having GamePass, and placing on the Power Board do not change the draw.
+        Each week is a new draw. To enter, buy at least one Pixie that week and keep it in the same wallet until Sunday noon Pacific. A Pixie from an earlier week does not count, and a Pixie that leaves the buying wallet is out. Your weekly power is your number of chances. Finishing a game adds chances. A top-20 finish adds more.
       </p>
       <a
         href="https://www.pepinho.games"
@@ -106,6 +107,52 @@ export default function CampaignPreview() {
       </a>
 
       <section style={cardStyle()} className="rounded-2xl p-6 mt-10">
+        <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-4xl mb-2">
+          Power
+        </h2>
+        <p className="text-sm text-gray-400 mb-4">Weekly power is the number of chances in that week’s draw. Twice the power means twice the chance to be drawn.</p>
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-widest text-gray-500">
+                <th className="pb-3 pr-4 font-semibold">Action</th>
+                <th className="pb-3 pr-4 font-semibold">Power</th>
+                <th className="pb-3 font-semibold">Chances</th>
+              </tr>
+            </thead>
+            <tbody>
+              {chances.map((row) => (
+                <tr key={row.action} style={{ borderTop: "1px solid var(--rpepe-border)" }}>
+                  <td className="py-3 pr-4 text-white">{row.action}</td>
+                  <td className="py-3 pr-4 text-gray-300 whitespace-nowrap">{row.power}</td>
+                  <td className="py-3 text-gray-300">{row.chances}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ol className="md:hidden space-y-4">
+          {chances.map((row) => (
+            <li key={row.action} style={{ borderTop: "1px solid var(--rpepe-border)" }} className="pt-3">
+              <p className="text-white font-semibold">{row.action}</p>
+              <p className="text-sm text-gray-300 mt-1">Power: {row.power}</p>
+              <p className="text-sm text-gray-400 mt-1">{row.chances}</p>
+            </li>
+          ))}
+        </ol>
+        <p className="text-sm text-gray-400 mt-4">
+          Bonus percents are added once, then applied to the base. Scores and holdings are taken at Sunday noon Pacific.
+          {" "}
+          {games.map((game, index) => (
+            <span key={game.id}>
+              {index > 0 ? " · " : ""}
+              <a href={game.href} target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-400">{game.label}</a>
+            </span>
+          ))}
+        </p>
+      </section>
+
+      <section style={cardStyle()} className="rounded-2xl p-6 mt-8">
         <h2 style={{ fontFamily: "var(--font-bangers)", letterSpacing: "0.04em" }} className="text-4xl mb-4">
           Every Sunday
         </h2>
@@ -192,7 +239,7 @@ export default function CampaignPreview() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-widest text-gray-500">
-                {["Rank", "Wallet", "Weekly power", "All-time", "Last week", "Pixies", "$RPEPE", "GamePass", "Entry"].map((heading) => (
+                {["Rank", "Wallet", "Chances", "All-time", "Last week", "Pixies", "$RPEPE", "GamePass", "Entry"].map((heading) => (
                   <th key={heading} className="pb-3 pr-4 font-semibold">{heading}</th>
                 ))}
               </tr>
@@ -235,24 +282,7 @@ export default function CampaignPreview() {
         </ol>
 
         {address ? <p className="text-sm text-gray-500 mt-4">{shortWallet(address)} is connected. It is not listed in these standings.</p> : null}
-
-        <details className="mt-6">
-          <summary className="cursor-pointer text-white font-semibold">How Power works</summary>
-          <div className="text-sm text-gray-400 mt-3 space-y-3">
-            <p>You start with 100 points for taking part, plus points for confirmed Pixies mints. A single mint of 1, 3, 5, or 10 Pixies earns 1, 5, 10, or 25 points. Any other quantity earns 1 point per Pixie. Each mint counts once. Transfers and later purchases do not.</p>
-            <p>Snake, Red Pepe Rocket, and Frogger are ranked separately. Rank 20 adds 10%, rank 19 adds 11%, and rank 1 adds 29%. Those bonuses are added to the holding bonuses, then applied once to the base points.</p>
-            <p>Pixies add 0% at zero, 1% for 1–5, 3% for 6–10, 5% for 11–20, 12% for 21–60, and 30% for 61 or more. $RPEPE adds 0% at zero, 1% through 250,000, 3% through 500,000, 5% through 1 million, 7% through 1.5 million, and 10% above that.</p>
-            <p>Scores and holdings are taken at Sunday noon Pacific. If weekly power matches, the higher base ranks first, then the lower wallet address.</p>
-            <p>
-              {games.map((game, index) => (
-                <span key={game.id}>
-                  {index > 0 ? " · " : ""}
-                  <a href={game.href} target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-400">{game.label}</a>
-                </span>
-              ))}
-            </p>
-          </div>
-        </details>
+        <p className="text-sm text-gray-500 mt-4">If chances match, the higher base ranks first, then the lower wallet address.</p>
       </section>
 
       <section style={cardStyle()} className="rounded-2xl p-5 mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
